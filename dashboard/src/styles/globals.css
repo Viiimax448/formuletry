@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme inline {
+	--font-sans: 'Inter', var(--font-geist-sans), system-ui, sans-serif;
+	--font-mono: 'JetBrains Mono', var(--font-geist-mono), 'Courier New', monospace;
+}
+
+@theme {
+	--breakpoint-3xl: 1800px;
+
+	--color-popover: rgba(37, 37, 37, 0.9);
+	--color-pane: oklch(18% 0.005 285.82);
+	
+	/* Modern Deep Slate Background */
+	--color-deep-slate: #111827;
+	--color-slate-card: #1F2937;
+	--color-slate-header: #374151;
+	
+	/* Custom gradient utilities */
+	--gradient-radial: radial-gradient(ellipse at center, var(--tw-gradient-stops));
+}
+@keyframes pulse-dot {
+	0%, 100% {
+		opacity: 1;
+		box-shadow: 0 0 10px var(--dot-color, currentColor);
+	}
+	50% {
+		opacity: 0.8;
+		box-shadow: 0 0 20px var(--dot-color, currentColor), 0 0 30px var(--dot-color, currentColor);
+	}
+}
+
+.animate-pulse-dot {
+	animation: pulse-dot 2s ease-in-out infinite;
+}
+/* Global Background Override */
+body {
+	background-color: var(--color-deep-slate) !important;
+	background: var(--color-deep-slate) !important;
+}
+
+@layer utilities {
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+
+	.no-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+}
+
+.pulse-loading-spinner {
+	animation: pulse-loading 1.2s cubic-bezier(0.52, 0.6, 0.25, 0.99) infinite;
+}
+
+@keyframes pulse-loading {
+	0% {
+		r: 0;
+		opacity: 1;
+	}
+	100% {
+		r: 11px;
+		opacity: 0;
+	}
+}

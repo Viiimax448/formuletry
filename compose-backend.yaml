@@ -1,0 +1,18 @@
+services:
+  api:
+    image: ghcr.io/slowlydev/f1-dash-api:latest
+    ports:
+      - 4010:80
+    environment:
+      - RUST_LOG=api=debug
+      - ADDRESS=0.0.0.0:80
+      - ORIGIN=http://localhost:3000
+
+  realtime:
+    image: ghcr.io/slowlydev/f1-dash-realtime:latest
+    ports:
+      - 4000:80
+    environment:
+      - RUST_LOG=realtime=debug
+      - ADDRESS=0.0.0.0:80
+      - ORIGIN=http://localhost:3000

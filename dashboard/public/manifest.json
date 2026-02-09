@@ -1,0 +1,31 @@
+{
+	"name": "Formuletry - Professional F1 Telemetry",
+	"short_name": "Formuletry",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#111827",
+	"theme_color": "#111827",
+	"description": "Professional Formula 1 telemetry platform with real-time timing data and advanced race analysis",
+	"icons": [
+		{
+			"src": "/favicon.ico",
+			"sizes": "16x16 32x32",
+			"type": "image/x-icon"
+		},
+		{
+			"src": "/iconformuletry.webp",
+			"sizes": "192x192",
+			"type": "image/webp"
+		},
+		{
+			"src": "/iconformuletry.webp",
+			"sizes": "512x512",
+			"type": "image/webp"
+		},
+		{
+			"src": "/favicon.png",
+			"sizes": "32x32",
+			"type": "image/png"
+		}
+	]
+}
