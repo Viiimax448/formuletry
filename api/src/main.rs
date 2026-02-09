@@ -8,7 +8,7 @@ use axum::{
 };
 
 use tokio::net::TcpListener;
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{CorsLayer, Any};
 use tracing::info;
 
 use shared::tracing_subscriber;
@@ -44,17 +44,23 @@ async fn main() -> Result<(), Error> {
 pub fn cors_layer() -> Result<CorsLayer, anyhow::Error> {
     let origin = env::var("ORIGIN").unwrap_or_else(|_| "https://f1-dash.com".to_string());
 
-    let cors = if origin == "*" {
-        // Use any() for wildcard
-        CorsLayer::new().allow_origin(tower_http::cors::Any)
+    // Simplified CORS logic
+    let cors = if origin.trim() == "*" {
+        CorsLayer::new().allow_origin(Any)
     } else {
-        // Use specific origins
-        let origins = origin
+        // Parse specific origins, but handle wildcards safely
+        let origins: Vec<HeaderValue> = origin
             .split(';')
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty() && *s != "*")  // Filter out wildcards
             .filter_map(|o| HeaderValue::from_str(o).ok())
-            .collect::<Vec<HeaderValue>>();
+            .collect();
         
-        CorsLayer::new().allow_origin(origins)
+        if origins.is_empty() {
+            CorsLayer::new().allow_origin(Any)
+        } else {
+            CorsLayer::new().allow_origin(origins)
+        }
     };
 
     Ok(cors.allow_methods([Method::GET, Method::CONNECT]))
