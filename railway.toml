@@ -5,3 +5,5 @@ builder = "NIXPAKS"
 startCommand = "./target/release/api"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
+
+# Force redeploy
