@@ -24,7 +24,11 @@ pub struct Context {
 }
 
 pub async fn start(state_service: StateService, tx: Sender<String>) -> Result<(), Error> {
-    let addr = env::var("ADDRESS").unwrap_or_else(|_| "0.0.0.0:80".to_string());
+    // Railway sets PORT env var automatically, fallback to ADDRESS or default
+    let addr = env::var("PORT")
+        .map(|port| format!("0.0.0.0:{}", port))
+        .or_else(|_| env::var("ADDRESS"))
+        .unwrap_or_else(|_| "0.0.0.0:80".to_string());
 
     let context = Arc::new(Context { state_service, tx });
 

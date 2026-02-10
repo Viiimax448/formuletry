@@ -15,16 +15,20 @@ COPY api api
 COPY simulator simulator
 
 FROM builder-base AS builder
-RUN cargo b -r
-
-
-# Default target for Railway
-FROM alpine:3
-COPY --from=builder /usr/src/app/target/release/api .
-CMD [ "/api" ]
+RUN cargo build --release
 
 
 # Alternative targets
 FROM alpine:3 AS realtime
+RUN apk add --no-cache ca-certificates
 COPY --from=builder /usr/src/app/target/release/realtime .
-CMD [ "/realtime" ]
+EXPOSE 80
+CMD [ "./realtime" ]
+
+
+# Default target for Railway (API)
+FROM alpine:3
+RUN apk add --no-cache ca-certificates
+COPY --from=builder /usr/src/app/target/release/api .
+EXPOSE 80
+CMD [ "./api" ]
