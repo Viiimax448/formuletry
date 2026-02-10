@@ -18,17 +18,17 @@ FROM builder-base AS builder
 RUN cargo build --release
 
 
-# Alternative targets
-FROM alpine:3 AS realtime
-RUN apk add --no-cache ca-certificates
-COPY --from=builder /usr/src/app/target/release/realtime .
-EXPOSE 80
-CMD [ "./realtime" ]
-
-
-# Default target for Railway (API)
-FROM alpine:3
+# API target (no longer default)
+FROM alpine:3 AS api
 RUN apk add --no-cache ca-certificates
 COPY --from=builder /usr/src/app/target/release/api .
 EXPOSE 80
 CMD [ "./api" ]
+
+
+# Default target for Railway (REALTIME)
+FROM alpine:3
+RUN apk add --no-cache ca-certificates
+COPY --from=builder /usr/src/app/target/release/realtime .
+EXPOSE 80
+CMD [ "./realtime" ]
