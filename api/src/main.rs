@@ -3,9 +3,11 @@ use std::env;
 use anyhow::Error;
 use axum::{
     Router,
-    http::{HeaderValue, Method},
+    http::{HeaderValue, Method, StatusCode, Uri},
     routing::get,
+    response::Json,
 };
+use serde_json;
 
 use tokio::net::TcpListener;
 use tower_http::cors::{CorsLayer, Any};
@@ -16,6 +18,22 @@ use shared::tracing_subscriber;
 mod endpoints {
     pub(crate) mod health;
     pub(crate) mod schedule;
+}
+
+async fn fallback_handler(uri: Uri) -> (StatusCode, Json<serde_json::Value>) {
+    tracing::warn!("No route found for: {}", uri);
+    (
+        StatusCode::NOT_FOUND,
+        Json(serde_json::json!({
+            "error": "Route not found",
+            "path": uri.to_string(),
+            "available_routes": [
+                "/api/health",
+                "/api/schedule", 
+                "/api/schedule/next"
+            ]
+        }))
+    )
 }
 
 #[tokio::main]
@@ -30,8 +48,13 @@ async fn main() -> Result<(), Error> {
         .route("/api/schedule", get(endpoints::schedule::get))
         .route("/api/schedule/next", get(endpoints::schedule::get_next))
         .route("/api/health", get(endpoints::health::check))
-        .layer(cors_layer()?);
+        .fallback(fallback_handler)
+        .layer(cors_layer()?);;
 
+    info!("Routes registered:");
+    info!("  GET /api/health");
+    info!("  GET /api/schedule");
+    info!("  GET /api/schedule/next");
     info!(addr, "starting api http server");
 
     axum::serve(TcpListener::bind(addr).await?, app).await?;
