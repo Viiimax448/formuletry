@@ -40,9 +40,19 @@ export const getNext = async () => {
 	await connection();
 
 	try {
-		const nextReq = await fetch(`${env.API_URL}/api/schedule/next`, {
+		const apiUrl = env.API_URL || "https://formuletry-production.up.railway.app";
+		console.log("Next API URL:", apiUrl); // Debug logging
+		
+		const nextReq = await fetch(`${apiUrl}/api/schedule/next`, {
 			cache: "no-store",
 		});
+		
+		console.log("Next request status:", nextReq.status); // Debug logging
+		
+		if (!nextReq.ok) {
+			throw new Error(`HTTP error! status: ${nextReq.status}`);
+		}
+		
 		const next: RoundType = await nextReq.json();
 
 		return next;
