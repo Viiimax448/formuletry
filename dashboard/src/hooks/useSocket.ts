@@ -13,6 +13,14 @@ export const useSocket = ({ handleInitial, handleUpdate }: Props) => {
 	const [connected, setConnected] = useState<boolean>(false);
 
 	useEffect(() => {
+		// Skip WebSocket connection if no live URL configured
+		if (!env.NEXT_PUBLIC_LIVE_URL) {
+			console.log("No NEXT_PUBLIC_LIVE_URL configured, skipping live connection");
+			setConnected(false);
+			return;
+		}
+
+		console.log("Connecting to live URL:", env.NEXT_PUBLIC_LIVE_URL);
 		const sse = new EventSource(`${env.NEXT_PUBLIC_LIVE_URL}/api/realtime`);
 
 		sse.onerror = () => setConnected(false);
