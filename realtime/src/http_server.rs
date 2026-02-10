@@ -52,7 +52,7 @@ pub async fn start(state_service: StateService, tx: Sender<String>) -> Result<()
 }
 
 pub fn cors_layer() -> Result<CorsLayer, Error> {
-    let origin = env::var("ORIGIN").unwrap_or_else(|_| "https://formuletry.com;https://www.formuletry.com".to_string());
+    let origin = env::var("ORIGIN").unwrap_or_else(|_| "https://www.formuletry.com".to_string());
 
     let origins = origin
         .split(';')
