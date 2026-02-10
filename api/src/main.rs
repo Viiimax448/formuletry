@@ -26,13 +26,11 @@ async fn main() -> Result<(), Error> {
     let port = env::var("PORT").unwrap_or_else(|_| "80".to_string());
     let addr = env::var("ADDRESS").unwrap_or_else(|_| format!("0.0.0.0:{}", port));
 
-    let cors_layer = cors_layer()?;
-
     let app = Router::new()
         .route("/api/schedule", get(endpoints::schedule::get))
         .route("/api/schedule/next", get(endpoints::schedule::get_next))
-        .route("/api/health", get(endpoints::health::check))
-        .layer(cors_layer);
+        .route("/api/health", get(endpoints::health::check));
+        // Temporarily disable CORS for debugging
 
     info!(addr, "starting api http server");
 
