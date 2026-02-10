@@ -1,6 +1,6 @@
 [workspace]
-members = ["shared", "realtime", "api", "simulator", "signalr"]
-default-members = ["realtime", "api"]
+members = ["shared", "realtime", "signalr"]
+default-members = ["realtime"]
 resolver = "2"
 
 [workspace.dependencies]
