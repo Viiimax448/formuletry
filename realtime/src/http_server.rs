@@ -48,7 +48,7 @@ pub async fn start(state_service: StateService, tx: Sender<String>) -> Result<()
 }
 
 pub fn cors_layer() -> Result<CorsLayer, Error> {
-    let origin = env::var("ORIGIN").unwrap_or_else(|_| "https://formuletry.vercel.app;https://f1-dash.com".to_string());
+    let origin = env::var("ORIGIN").unwrap_or_else(|_| "https://formuletry.com".to_string());
 
     let origins = origin
         .split(';')

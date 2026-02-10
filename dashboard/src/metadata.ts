@@ -4,7 +4,7 @@ const title = "Formuletry | Professional F1 Telemetry & Live Timing";
 const description =
 	"Professional Formula 1 telemetry platform. Real-time timing data, advanced analysis, live tracking, and comprehensive race insights. Open source F1 dashboard.";
 
-const url = "https://formuletry.vercel.app";
+const url = "https://formuletry.com";
 
 export const metadata: Metadata = {
 	generator: "Next.js",

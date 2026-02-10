@@ -63,7 +63,7 @@ async fn main() -> Result<(), Error> {
 }
 
 pub fn cors_layer() -> Result<CorsLayer, anyhow::Error> {
-    let origin = env::var("ORIGIN").unwrap_or_else(|_| "https://formuletry.vercel.app".to_string());
+    let origin = env::var("ORIGIN").unwrap_or_else(|_| "https://formuletry.com".to_string());
 
     // Handle CORS with better wildcard logic
     let cors = if origin.trim() == "*" || origin.trim().is_empty() {
