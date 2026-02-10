@@ -157,6 +157,10 @@ fn update_round(event: IcalEvent, round: &mut Round, kind: &str) -> Result<(), E
 async fn get_schedule(year: i32) -> Result<Vec<Round>, anyhow::Error> {
     debug!("Starting get_schedule for year: {}", year);
     
+    // Check if we're running on Railway or locally
+    let is_railway = std::env::var("RAILWAY_ENVIRONMENT").is_ok();
+    debug!("Running on Railway: {}", is_railway);
+    
     // webcal://ics.ecal.com/ecal-sub/660897ca63f9ca0008bcbea6/Formula%201.ics
     // *note this is a link created by entering a email and other info on the f1 website
     // i hope this does not expire...
@@ -234,6 +238,7 @@ async fn get_schedule(year: i32) -> Result<Vec<Round>, anyhow::Error> {
 }
 
 pub async fn get() -> Result<axum::Json<Vec<Round>>, axum::http::StatusCode> {
+    debug!("=== GET /api/schedule called ===");
     let year = chrono::Utc::now().year();
     debug!("Getting schedule for year: {}", year);
     let schedule = get_schedule(year).await;
@@ -251,6 +256,7 @@ pub async fn get() -> Result<axum::Json<Vec<Round>>, axum::http::StatusCode> {
 }
 
 pub async fn get_next() -> Result<axum::Json<Round>, axum::http::StatusCode> {
+    debug!("=== GET /api/schedule/next called ===");
     let year = chrono::Utc::now().year();
     let schedule = get_schedule(year).await;
 
