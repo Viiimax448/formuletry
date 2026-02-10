@@ -4,27 +4,16 @@ import Round from "@/components/schedule/Round";
 
 import type { Round as RoundType } from "@/types/schedule.type";
 
-import { env } from "@/env";
+import { getScheduleStatic } from "@/data/f1-calendar";
 
 export const getSchedule = async () => {
 	await connection();
 
 	try {
-		const apiUrl = env.API_URL || "https://formuletry-production.up.railway.app";
-		console.log("API URL:", apiUrl); // Debug logging
+		// Using static calendar data instead of API
+		const schedule: RoundType[] = getScheduleStatic();
+		console.log("Using static schedule data with", schedule.length, "events"); // Debug logging
 		
-		const scheduleReq = await fetch(`${apiUrl}/api/schedule`, {
-			cache: "no-store",
-		});
-		
-		console.log("Schedule request status:", scheduleReq.status); // Debug logging
-		
-		if (!scheduleReq.ok) {
-			throw new Error(`HTTP error! status: ${scheduleReq.status}`);
-		}
-		
-		const schedule: RoundType[] = await scheduleReq.json();
-
 		return schedule;
 	} catch (e) {
 		console.error("error fetching schedule", e);

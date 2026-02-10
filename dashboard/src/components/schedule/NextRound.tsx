@@ -5,7 +5,7 @@ import Countdown from "@/components/schedule/Countdown";
 import Round from "@/components/schedule/Round";
 import Flag from "@/components/Flag";
 
-import { env } from "@/env";
+import { getNextEvent } from "@/data/f1-calendar";
 import type { Round as RoundType } from "@/types/schedule.type";
 
 const countryCodeMap: Record<string, string> = {
@@ -40,22 +40,11 @@ export const getNext = async () => {
 	await connection();
 
 	try {
-		const apiUrl = env.API_URL || "https://formuletry-production.up.railway.app";
-		console.log("Next API URL:", apiUrl); // Debug logging
+		// Using static calendar data instead of API
+		const next: RoundType | undefined = getNextEvent();
+		console.log("Using static next event data:", next?.name); // Debug logging
 		
-		const nextReq = await fetch(`${apiUrl}/api/schedule/next`, {
-			cache: "no-store",
-		});
-		
-		console.log("Next request status:", nextReq.status); // Debug logging
-		
-		if (!nextReq.ok) {
-			throw new Error(`HTTP error! status: ${nextReq.status}`);
-		}
-		
-		const next: RoundType = await nextReq.json();
-
-		return next;
+		return next || null;
 	} catch (e) {
 		console.error("error fetching next round", e);
 		return null;
