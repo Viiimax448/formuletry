@@ -17,7 +17,7 @@ export const useSocket = ({ handleInitial, handleUpdate }: Props) => {
 		if (!env.NEXT_PUBLIC_LIVE_URL) {
 			console.log("No NEXT_PUBLIC_LIVE_URL configured, skipping live connection");
 			setConnected(false);
-			return;
+			return () => {}; // Return empty cleanup function
 		}
 
 		console.log("Connecting to live URL:", env.NEXT_PUBLIC_LIVE_URL);

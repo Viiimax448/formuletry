@@ -1,6 +1,6 @@
 {
 	"name": "formuletry",
-	"version": "4.0.2",
+	"version": "4.0.3",
 	"description": "Professional Formula 1 telemetry platform with real-time timing data, advanced analysis, and live race tracking",
 	"private": true,
 	"scripts": {
