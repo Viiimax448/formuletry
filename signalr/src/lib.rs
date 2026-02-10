@@ -176,10 +176,10 @@ async fn receive_valid_response(stream: &mut WsStream) -> Result<Response, anyho
             .await
             .ok_or_else(|| anyhow::anyhow!("No response received"))??;
 
-        if let Message::Text(txt) = response_message
-            && let Ok(response) = serde_json::from_str::<Response>(&txt)
-        {
-            return Ok(response);
+        if let Message::Text(txt) = response_message {
+            if let Ok(response) = serde_json::from_str::<Response>(&txt) {
+                return Ok(response);
+            }
         }
     }
 }
