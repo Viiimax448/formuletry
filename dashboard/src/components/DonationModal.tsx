@@ -53,7 +53,7 @@ export default function DonationModal({ isOpen, onClose }: Props) {
 									<span className="text-3xl">🇦🇷</span>
 									<div className="text-left">
 										<h4 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">
-											Cafecito
+										Tecito
 										</h4>
 										<p className="text-sm text-gray-400">
 											MercadoPago / ARS

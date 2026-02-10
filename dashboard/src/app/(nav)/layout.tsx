@@ -16,23 +16,14 @@ export default function Layout({ children }: Props) {
 	return (
 		<>
 			<nav className="sticky top-0 left-0 z-10 flex h-16 w-full items-center justify-between gap-4 border-b border-white/10 bg-deep-slate/90 backdrop-blur-xl px-6">
-				<div className="flex gap-6">
+				<div className="flex">
 					<Link className="font-medium text-gray-300 transition-colors duration-200 hover:text-white active:scale-95" href="/">
 						Home
 					</Link>
-					<Link className="font-medium text-gray-300 transition-colors duration-200 hover:text-white active:scale-95" href="/dashboard">
-						Dashboard
-					</Link>
-					<Link className="font-medium text-gray-300 transition-colors duration-200 hover:text-white active:scale-95" href="/schedule">
-						Schedule
-					</Link>
-					<Link className="font-medium text-gray-300 transition-colors duration-200 hover:text-white active:scale-95" href="/help">
-						Help
-					</Link>
 				</div>
 
-				{/* Right Side - Support & Social */}
-				<div className="flex items-center gap-4">
+				{/* Right Side - Support Only */}
+				<div className="flex items-center">
 					{/* Support Button */}
 					<button
 						onClick={donationModal.open}
@@ -41,19 +32,6 @@ export default function Layout({ children }: Props) {
 						<span>Support</span>
 						<span>❤️</span>
 					</button>
-
-					{/* Twitter Link */}
-					<Link
-						href="https://x.com/MaximoLXXXI"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="flex items-center justify-center rounded-lg p-2 text-gray-400 transition-colors duration-200 hover:bg-white/10 hover:text-white active:scale-95"
-						title="Follow on X (Twitter)"
-					>
-						<svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-						</svg>
-					</Link>
 				</div>
 			</nav>
 

@@ -1,10 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { Suspense } from "react";
-import { getNext } from "@/components/schedule/NextRound";
+import { useEffect, useState } from "react";
+import { getNextEvent } from "@/data/f1-calendar";
 import Countdown from "@/components/schedule/Countdown";
 import Flag from "@/components/Flag";
 import SupportFooter from "@/components/SupportFooter";
+import DonationModal from "@/components/DonationModal";
+import { useDonationModal } from "@/hooks/useDonationModal";
 import { utc } from "moment";
+import type { Round } from "@/types/schedule.type";
 
 const countryCodeMap: Record<string, string> = {
 	Australia: "aus",
@@ -34,8 +39,28 @@ const countryCodeMap: Record<string, string> = {
 	"United States": "usa",
 };
 
-async function NextEventCard() {
-	const next = await getNext();
+function NextEventCard() {
+	const [next, setNext] = useState<Round | null>(null);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		const loadNext = () => {
+			const nextEvent = getNextEvent();
+			setNext(nextEvent || null);
+			setLoading(false);
+		};
+		loadNext();
+	}, []);
+
+	if (loading) {
+		return (
+			<div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6">
+				<div className="text-center text-gray-400">
+					Loading next event...
+				</div>
+			</div>
+		);
+	}
 	
 	if (!next) {
 		return (
@@ -76,6 +101,8 @@ async function NextEventCard() {
 }
 
 export default function Home() {
+	const donationModal = useDonationModal();
+
 	return (
 		<div className="relative min-h-screen bg-deep-slate overflow-hidden">
 			{/* Background Effects */}
@@ -129,7 +156,6 @@ export default function Home() {
 							<div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-300 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
 							<div className="relative flex items-center space-x-3">
 								<span className="tracking-wide">LAUNCH DASHBOARD</span>
-								<span className="text-2xl">🚀</span>
 							</div>
 						</button>
 					</Link>
@@ -137,13 +163,7 @@ export default function Home() {
 
 				{/* Next Event Widget */}
 				<div className="w-full max-w-lg mb-16">
-					<Suspense fallback={
-						<div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 animate-pulse">
-							<div className="h-16 bg-white/10 rounded" />
-						</div>
-					}>
-						<NextEventCard />
-					</Suspense>
+					<NextEventCard />
 				</div>
 
 				{/* Navigation Grid */}
@@ -215,6 +235,12 @@ export default function Home() {
 
 			{/* Footer */}
 			<SupportFooter />
+
+			{/* Donation Modal */}
+			<DonationModal 
+				isOpen={donationModal.isOpen} 
+				onClose={donationModal.close} 
+			/>
 		</div>
 	);
 }

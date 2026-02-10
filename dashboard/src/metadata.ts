@@ -4,7 +4,7 @@ const title = "Formuletry | Professional F1 Telemetry & Live Timing";
 const description =
 	"Professional Formula 1 telemetry platform. Real-time timing data, advanced analysis, live tracking, and comprehensive race insights. Open source F1 dashboard.";
 
-const url = "https://f1-dash.com";
+const url = "https://formuletry.vercel.app";
 
 export const metadata: Metadata = {
 	generator: "Next.js",
@@ -30,30 +30,16 @@ export const metadata: Metadata = {
 		url,
 		type: "website",
 		siteName: "Formuletry - Professional F1 Telemetry",
-		images: [
-			{
-				alt: "Formuletry - Professional F1 Telemetry Dashboard",
-				url: `${url}/og-image.png`,
-				width: 1200,
-				height: 630,
-			},
-		],
+		// Removed images - no Open Graph images configured
 	},
 
 	twitter: {
-		site: "@Slowlydev",
+		site: "@MaximoLXXXI",
 		title,
 		description,
-		creator: "@Slowlydev",
+		creator: "@MaximoLXXXI",
 		card: "summary_large_image",
-		images: [
-			{
-				url: `${url}/twitter-image.png`,
-				alt: "Formuletry - Professional F1 Telemetry Dashboard",
-				width: 1200,
-				height: 630,
-			},
-		],
+		// Removed images - no Twitter card images configured
 	},
 
 	category: "Sports & Recreation",
@@ -62,9 +48,9 @@ export const metadata: Metadata = {
 
 	keywords: ["Formula 1", "F1 telemetry", "professional racing data", "live timing", "race analysis", "motorsport dashboard", "F1 dashboard", "realtime F1"],
 
-	creator: "Slowlydev",
-	publisher: "Slowlydev",
-	authors: [{ name: "Slowlydev", url: "https://slowly.dev" }],
+	creator: "MaximoLXXXI",
+	publisher: "MaximoLXXXI",
+	authors: [{ name: "MaximoLXXXI", url: "https://x.com/MaximoLXXXI" }],
 
 	appleWebApp: {
 		capable: true,
@@ -85,7 +71,7 @@ export const metadata: Metadata = {
 	},
 
 	verification: {
-		google: "hKv0h7XtWgQ-pVNVKpwwb2wcCC2f0tBQ1X1IcDX50hg",
+		// Removed Google verification from previous project
 	},
 
 	manifest: "/manifest.json",

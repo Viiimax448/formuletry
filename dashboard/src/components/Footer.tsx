@@ -5,19 +5,19 @@ export default function Footer() {
 		<footer className="my-8 text-sm text-zinc-500">
 			<div className="mb-4 flex flex-wrap gap-2">
 				<p>
-					Made with ♥ by <TextLink website="https://slowly.dev">Slowly</TextLink>.
+					Made with ♥ by <TextLink website="https://x.com/MaximoLXXXI">MaximoLXXXI</TextLink>.
 				</p>
 
 				<p>
-					<TextLink website="https://www.buymeacoffee.com/slowlydev">Buy me a coffee</TextLink> to support me.
+					<TextLink website="https://cafecito.app/formuletry">Invitame un tecito</TextLink> para apoyar el proyecto.
 				</p>
 
 				<p>
-					Contribute on <TextLink website="https://github.com/slowlydev/f1-dash">GitHub</TextLink>.
+					Contribuí en <TextLink website="https://github.com/Viiimax448/formuletry">GitHub</TextLink>.
 				</p>
 
 				<p>
-					Check out the Community <TextLink website="https://discord.gg/unJwu66NuB">Discord</TextLink>.
+					Únite a la comunidad en <TextLink website="https://discord.gg/unJwu66NuB">Discord</TextLink>.
 				</p>
 
 				<p>
