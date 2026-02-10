@@ -13,28 +13,27 @@ export const useSocket = ({ handleInitial, handleUpdate }: Props) => {
 	const [connected, setConnected] = useState<boolean>(false);
 
 	useEffect(() => {
-		// DISABLED: Skip WebSocket connection entirely until realtime backend is configured
-		console.log("WebSocket disabled - no realtime backend available");
-		setConnected(false);
-		return () => {}; // No cleanup needed
+		if (!env.NEXT_PUBLIC_LIVE_URL) {
+			console.log("No NEXT_PUBLIC_LIVE_URL configured, skipping live connection");
+			setConnected(false);
+			return () => {};
+		}
 		
-		// Original WebSocket code commented out:
-		// if (!env.NEXT_PUBLIC_LIVE_URL) {
-		// 	console.log("No NEXT_PUBLIC_LIVE_URL configured, skipping live connection");
-		// 	setConnected(false);
-		// 	return () => {};
-		// }
-		// console.log("Connecting to live URL:", env.NEXT_PUBLIC_LIVE_URL);
-		// const sse = new EventSource(`${env.NEXT_PUBLIC_LIVE_URL}/api/realtime`);
-		// sse.onerror = () => setConnected(false);
-		// sse.onopen = () => setConnected(true);
-		// sse.addEventListener("initial", (message) => {
-		// 	handleInitial(JSON.parse(message.data));
-		// });
-		// sse.addEventListener("update", (message) => {
-		// 	handleUpdate(JSON.parse(message.data));
-		// });
-		// return () => sse.close();
+		console.log("Connecting to live URL:", env.NEXT_PUBLIC_LIVE_URL);
+		const sse = new EventSource(`${env.NEXT_PUBLIC_LIVE_URL}/api/realtime`);
+		
+		sse.onerror = () => setConnected(false);
+		sse.onopen = () => setConnected(true);
+		
+		sse.addEventListener("initial", (message) => {
+			handleInitial(JSON.parse(message.data));
+		});
+		
+		sse.addEventListener("update", (message) => {
+			handleUpdate(JSON.parse(message.data));
+		});
+		
+		return () => sse.close();
 	}, []);
 
 	return { connected };
