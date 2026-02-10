@@ -155,29 +155,44 @@ fn update_round(event: IcalEvent, round: &mut Round, kind: &str) -> Result<(), E
     time = 1800
 )]
 async fn get_schedule(year: i32) -> Result<Vec<Round>, anyhow::Error> {
+    debug!("Starting get_schedule for year: {}", year);
+    
     // webcal://ics.ecal.com/ecal-sub/660897ca63f9ca0008bcbea6/Formula%201.ics
     // *note this is a link created by entering a email and other info on the f1 website
     // i hope this does not expire...
     let cal_url = "https://ics.ecal.com/ecal-sub/660897ca63f9ca0008bcbea6/Formula%201.ics";
+    debug!("Fetching calendar from: {}", cal_url);
+    
     let cal_bytes = reqwest::get(cal_url).await?.bytes().await?;
+    debug!("Downloaded {} bytes from calendar", cal_bytes.len());
+    
     let cal_buf = BufReader::new(cal_bytes.as_ref());
     let cal_reader = ical::IcalParser::new(cal_buf);
 
     let mut rounds: Vec<Round> = vec![];
+    let mut event_count = 0;
 
     for line in cal_reader {
         let calendar = line?;
+        debug!("Processing calendar with {} events", calendar.events.len());
 
         for event in calendar.events {
+            event_count += 1;
             let full_name = get_property(&event, "SUMMARY");
 
             let Some(full_name) = full_name else {
+                debug!("Event {} has no SUMMARY", event_count);
                 continue;
             };
 
+            debug!("Processing event: {}", full_name);
+
             let Some((name, kind)) = parse_name(&full_name) else {
+                debug!("Could not parse name from: {}", full_name);
                 continue;
             };
+
+            debug!("Parsed event: {} ({})", name, kind);
 
             match find_round_mut(&mut rounds, &name) {
                 Some(round) => {
@@ -220,12 +235,16 @@ async fn get_schedule(year: i32) -> Result<Vec<Round>, anyhow::Error> {
 
 pub async fn get() -> Result<axum::Json<Vec<Round>>, axum::http::StatusCode> {
     let year = chrono::Utc::now().year();
+    debug!("Getting schedule for year: {}", year);
     let schedule = get_schedule(year).await;
 
     match schedule {
-        Ok(schedule) => Ok(axum::Json(schedule)),
-        Err(_) => {
-            error!("failed to create schedule for year {}", year);
+        Ok(schedule) => {
+            debug!("Successfully got {} rounds for year {}", schedule.len(), year);
+            Ok(axum::Json(schedule))
+        },
+        Err(err) => {
+            error!("Failed to create schedule for year {}: {:?}", year, err);
             Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR)
         }
     }

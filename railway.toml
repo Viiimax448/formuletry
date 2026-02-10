@@ -1,0 +1,6 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "dockerfile"
+
+[build.args]
+target = "api"
