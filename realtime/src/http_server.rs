@@ -44,7 +44,7 @@ pub async fn start(state_service: StateService, tx: Sender<String>) -> Result<()
         .layer(cors)
         .into_make_service();
 
-    info!(addr, "starting norths http server");
+    info!(addr, "starting realtime http server (Railway deployment)");
 
     axum::serve(TcpListener::bind(addr).await?, app).await?;
 
