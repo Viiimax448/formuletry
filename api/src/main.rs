@@ -1,5 +1,6 @@
 use std::env;
 
+// F1 Dashboard API Server - includes calendar endpoints
 use anyhow::Error;
 use axum::{
     Router,
