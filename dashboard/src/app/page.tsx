@@ -156,6 +156,7 @@ export default function Home() {
 							<div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-300 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
 							<div className="relative flex items-center space-x-3">
 								<span className="tracking-wide">LAUNCH DASHBOARD</span>
+								<span className="text-2xl">🚀</span>
 							</div>
 						</button>
 					</Link>

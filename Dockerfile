@@ -11,14 +11,20 @@ COPY Cargo.toml .
 COPY realtime realtime
 COPY shared shared
 COPY signalr signalr
+COPY api api
+COPY simulator simulator
 
 FROM builder-base AS builder
-RUN cargo build --release --bin realtime
+RUN cargo b -r
 
 
-# Default target for Railway (REALTIME only)
+# Default target for Railway
 FROM alpine:3
-RUN apk add --no-cache ca-certificates
+COPY --from=builder /usr/src/app/target/release/api .
+CMD [ "/api" ]
+
+
+# Alternative targets
+FROM alpine:3 AS realtime
 COPY --from=builder /usr/src/app/target/release/realtime .
-EXPOSE 80
-CMD [ "./realtime" ]
+CMD [ "/realtime" ]

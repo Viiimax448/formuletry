@@ -24,11 +24,7 @@ pub struct Context {
 }
 
 pub async fn start(state_service: StateService, tx: Sender<String>) -> Result<(), Error> {
-    // Railway sets PORT env var automatically, fallback to ADDRESS or default
-    let addr = env::var("PORT")
-        .map(|port| format!("0.0.0.0:{}", port))
-        .or_else(|_| env::var("ADDRESS"))
-        .unwrap_or_else(|_| "0.0.0.0:80".to_string());
+    let addr = env::var("ADDRESS").unwrap_or_else(|_| "0.0.0.0:80".to_string());
 
     let context = Arc::new(Context { state_service, tx });
 
@@ -44,7 +40,7 @@ pub async fn start(state_service: StateService, tx: Sender<String>) -> Result<()
         .layer(cors)
         .into_make_service();
 
-    info!(addr, "starting realtime http server (Railway deployment)");
+    info!(addr, "starting norths http server");
 
     axum::serve(TcpListener::bind(addr).await?, app).await?;
 
@@ -52,7 +48,7 @@ pub async fn start(state_service: StateService, tx: Sender<String>) -> Result<()
 }
 
 pub fn cors_layer() -> Result<CorsLayer, Error> {
-    let origin = env::var("ORIGIN").unwrap_or_else(|_| "https://www.formuletry.com".to_string());
+    let origin = env::var("ORIGIN").unwrap_or_else(|_| "https://formuletry.vercel.app;https://f1-dash.com".to_string());
 
     let origins = origin
         .split(';')
