@@ -30,7 +30,6 @@ export const metadata: Metadata = {
 		url,
 		type: "website",
 		siteName: "Formuletry - Professional F1 Telemetry",
-		// Removed images - no Open Graph images configured
 	},
 
 	twitter: {
@@ -38,8 +37,7 @@ export const metadata: Metadata = {
 		title,
 		description,
 		creator: "@MaximoLXXXI",
-		card: "summary_large_image",
-		// Removed images - no Twitter card images configured
+		card: "summary",
 	},
 
 	category: "Sports & Recreation",
