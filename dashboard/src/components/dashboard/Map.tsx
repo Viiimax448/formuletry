@@ -354,28 +354,17 @@ const CarDot = ({ pos, name, color, favoriteDriver, pit, hidden, rotation, cente
 				...(color && { fill: `#${color}` }),
 			}}
 		>
-			<circle id={`map.driver.circle`} r={120} />
+			<circle id={`map.driver.circle`} r={favoriteDriver ? 300 : 120} />
 			<text
 				id={`map.driver.text`}
 				fontWeight="bold"
-				fontSize={120 * 3}
+				fontSize={favoriteDriver ? 120 * 6 : 120 * 3}
 				style={{
 					transform: "translateX(150px) translateY(-120px)",
 				}}
 			>
 				{name}
 			</text>
-
-			{favoriteDriver && (
-				<circle
-					id={`map.driver.favorite`}
-					className="stroke-sky-400"
-					r={180}
-					fill="transparent"
-					strokeWidth={40}
-					style={{ transition: "all 1s linear" }}
-				/>
-			)}
 		</g>
 	);
 };

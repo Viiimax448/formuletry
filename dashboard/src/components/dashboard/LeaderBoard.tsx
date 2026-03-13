@@ -11,11 +11,13 @@ import Driver from "@/components/driver/Driver";
 import DriverCardModal from "./DriverCardModal";
 
 export default function LeaderBoard() {
-    const [selectedDriver, setSelectedDriver] = useState<number | null>(null);
     const [driverCardOpen, setDriverCardModalOpen] = useState<string | null>(null);
 
     const compactMode = useSettingsStore((state) => state.compactMode);
     const showTableHeader = useSettingsStore((state) => state.tableHeaders);
+    const favoriteDrivers = useSettingsStore((state) => state.favoriteDrivers);
+    const setFavoriteDrivers = useSettingsStore((state) => state.setFavoriteDrivers);
+    const removeFavoriteDriver = useSettingsStore((state) => state.removeFavoriteDriver);
 
     const drivers = useDataStore(({ state }) => state?.DriverList);
     const driversTiming = useDataStore(({ state }) => state?.TimingData);
@@ -33,16 +35,24 @@ export default function LeaderBoard() {
                         {Object.values(driversTiming.Lines)
                             .sort(sortPos)
                             .map((timingDriver, index) => {
-                                const racingNumber = parseInt(timingDriver.RacingNumber, 10);
-                                const isSelected = selectedDriver === racingNumber;
+                                const isSelected = favoriteDrivers.includes(timingDriver.RacingNumber);
+                                
+                                const toggleFavorite = () => {
+                                    if (isSelected) {
+                                        removeFavoriteDriver(timingDriver.RacingNumber);
+                                    } else {
+                                        setFavoriteDrivers([...favoriteDrivers, timingDriver.RacingNumber]);
+                                    }
+                                };
+                                
                                 return (
                                     <Driver
-                                        key={`leaderBoard.driver.${racingNumber}`}
+                                        key={`leaderBoard.driver.${timingDriver.RacingNumber}`}
                                         position={index + 1}
                                         driver={drivers[timingDriver.RacingNumber]}
                                         timingDriver={timingDriver}
                                         isSelected={isSelected}
-                                        handleSelectDriver={() => setSelectedDriver(racingNumber)}
+                                        handleSelectDriver={toggleFavorite}
                                         onOpenDriverCard={() => setDriverCardModalOpen(timingDriver.RacingNumber)}
                                     />
                                 );
@@ -72,16 +82,16 @@ const TableHeaders = ({ compactMode }: { compactMode: boolean }) => {
                 gridTemplateColumns: compactMode
                     ? "4rem 2.5rem 3.5rem 3rem 3.5rem auto"
                     : carMetrics
-                    ? "4rem 2.5rem 4rem 3rem 3.5rem 4rem auto 8rem"
-                    : "4rem 2.5rem 4rem 3rem 3.5rem 4rem auto",
+                    ? "4rem 2.5rem 4rem 3.5rem 4rem 3rem auto 8rem"
+                    : "4rem 2.5rem 4rem 3.5rem 4rem 3rem auto",
             }}
         >
             <p>Position</p>
             <p>DRS</p>
             <p>Tire</p>
-            <p>Laps</p>
             <p>Gap</p>
             <p>LapTime</p>
+            <p>Laps</p>
             {!compactMode && <p>Sectors</p>}
             {carMetrics && !compactMode && <p>Car Metrics</p>}
         </div>
@@ -100,8 +110,8 @@ const SkeletonDriver = ({ compactMode }: { compactMode: boolean }) => {
                 gridTemplateColumns: compactMode
                     ? "4rem 2.5rem 3.5rem 3rem 3.5rem auto"
                     : carMetrics
-                    ? "4rem 2.5rem 3.5rem 3rem 3.5rem 4rem auto 8rem"
-                    : "4rem 2.5rem 3.5rem 3rem 3.5rem 4rem auto",
+                    ? "4rem 2.5rem 4rem 3.5rem 4rem 3rem auto 8rem"
+                    : "4rem 2.5rem 4rem 3.5rem 4rem 3rem auto",
             }}
         >
             <div className={animateClass} style={{ width: "100%" }} />

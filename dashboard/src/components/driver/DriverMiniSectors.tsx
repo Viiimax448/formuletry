@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useState, useEffect } from "react";
 
 import type { TimingDataDriver, TimingStatsDriver } from "@/types/state.type";
 import { useSettingsStore } from "@/stores/useSettingsStore";
@@ -12,6 +13,20 @@ type Props = {
 export default function DriverMiniSectors({ sectors = [], bestSectors }: Props) {
 	const showMiniSectors = useSettingsStore((state) => state.showMiniSectors);
 	const showBestSectors = useSettingsStore((state) => state.showBestSectors);
+	
+	const [isMobile, setIsMobile] = useState(false);
+
+	useEffect(() => {
+		const checkMobile = () => {
+			setIsMobile(window.innerWidth < 768);
+		};
+
+		checkMobile();
+		window.addEventListener("resize", checkMobile);
+		return () => window.removeEventListener("resize", checkMobile);
+	}, []);
+
+	const getPlaceholder = () => isMobile ? "--" : "-- --";
 
 	return (
 		<div className="flex gap-1">
@@ -36,7 +51,7 @@ export default function DriverMiniSectors({ sectors = [], bestSectors }: Props) 
 								}
 							)}
 						>
-							{!!sector.Value ? sector.Value : !!sector.PreviousValue ? sector.PreviousValue : "-- ---"}
+							{!!sector.Value ? sector.Value : !!sector.PreviousValue ? sector.PreviousValue : getPlaceholder()}
 						</p>
 
 						{showBestSectors && (
@@ -48,7 +63,7 @@ export default function DriverMiniSectors({ sectors = [], bestSectors }: Props) 
 									}
 								)}
 							>
-								{bestSectors && bestSectors[i].Value ? bestSectors[i].Value : "-- ---"}
+								{bestSectors && bestSectors[i].Value ? bestSectors[i].Value : getPlaceholder()}
 							</p>
 						)}
 					</div>

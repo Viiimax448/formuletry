@@ -53,7 +53,7 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 
 	const carMetrics = useSettingsStore((state) => state.carMetrics);
 
-	const favoriteDriver = useSettingsStore((state) => state.favoriteDrivers.includes(String(driver.RacingNumber)));
+	const favoriteDriver = useSettingsStore((state) => state.favoriteDrivers.includes(timingDriver.RacingNumber));
 
 	const compactMode = useSettingsStore((state) => state.compactMode);
 
@@ -75,18 +75,20 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 			return "5.5rem 2.2rem 3.5rem 2.8rem 3.4rem auto"; // Compact layout
 		}
 		return carMetrics
-			? "5.5rem 2.2rem 3.5rem 2.8rem 3.4rem 4rem auto 8rem"
-			: "5.5rem 2.2rem 3.5rem 2.8rem 3.4rem 4rem auto";
+			? "5.5rem 2.2rem 3.5rem 3.4rem 4rem 2.8rem auto 8rem"
+			: "5.5rem 2.2rem 3.5rem 3.4rem 4rem 2.8rem auto";
 	};
 
 	return (
 		<motion.div
 			layout="position"
-			onClick={handleSelectDriver}
+			onClick={() => {
+				handleSelectDriver();
+			}}
 			className={clsx(
 				// Compact table style for all devices
-				"flex flex-col gap-0.5 rounded-none p-1 py-1 mb-0 select-none cursor-pointer",
-				"bg-transparent border-0 border-b border-gray-600/30",
+				"flex flex-col gap-0.5 rounded-none p-1 py-1 mb-0 select-none cursor-pointer driver-row",
+				"border-0 border-b border-gray-600/30 w-fit min-w-full",
 				"hover:bg-gray-800/30 shadow-none backdrop-blur-none",
 				compactMode ? "h-auto min-h-[2.25rem]" : "h-auto", // Updated from min-h-[3rem]
 				{
@@ -100,7 +102,7 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 		>
 			<div
 				className={clsx(
-					"grid items-center gap-2 driver-grid",
+					"grid items-center gap-2 driver-grid w-full",
 					"md:gap-2"
 				)}
 				style={{
@@ -128,12 +130,12 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 				/>
 				<DriverTire stints={appTimingDriver?.Stints} />
 
+				<DriverGap timingDriver={timingDriver} sessionPart={sessionPart} />
+				<DriverLapTime last={timingDriver.LastLapTime} best={timingDriver.BestLapTime} hasFastest={hasFastest} />
+				
 				<div className="text-center font-mono text-sm text-white/90 md:text-base">
 					{timingDriver.NumberOfLaps}<span className="text-gray-400 ml-0.5 text-xs">L</span>
 				</div>
-
-				<DriverGap timingDriver={timingDriver} sessionPart={sessionPart} />
-				<DriverLapTime last={timingDriver.LastLapTime} best={timingDriver.BestLapTime} hasFastest={hasFastest} />
 				<DriverMiniSectors
 					sectors={timingDriver.Sectors}
 					bestSectors={timingStatsDriver?.BestSectors}

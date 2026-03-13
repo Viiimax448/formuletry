@@ -9,6 +9,16 @@ type Props = {
 };
 
 export default function DriverLapTime({ last, best, hasFastest }: Props) {
+	// Sanitize lap time data to normalize API inconsistencies
+	const sanitizeLapTime = (value: string | undefined) => {
+		if (!value) return "-- -- -";
+		// Convert "-- -- -- -" to "-- -- -" for consistent formatting
+		return value.replace(/^-- -- -- -$/, "-- -- -");
+	};
+
+	const lastValue = sanitizeLapTime(last.Value);
+	const bestValue = sanitizeLapTime(best.Value);
+
 	return (
 		<div className="place-self-start">
 			<p
@@ -21,7 +31,7 @@ export default function DriverLapTime({ last, best, hasFastest }: Props) {
 					}
 				)}
 			>
-				{!!last.Value ? last.Value : "-- -- ---"}
+				{lastValue}
 			</p>
 			<p
 				className={clsx(
@@ -32,7 +42,7 @@ export default function DriverLapTime({ last, best, hasFastest }: Props) {
 					}
 				)}
 			>
-				{!!best.Value ? best.Value : "-- -- ---"}
+				{bestValue}
 			</p>
 		</div>
 	);

@@ -71,8 +71,6 @@ export default function RadioMessage({ driver, capture, basePath, gmtOffset }: P
 		});
 	};
 
-	const favoriteDriver = useSettingsStore((state) => state.favoriteDrivers.includes(driver.RacingNumber));
-
 	const localTime = utc(capture.Utc).local().format("HH:mm:ss");
 	const trackTime = utc(toTrackTime(capture.Utc, gmtOffset)).format("HH:mm");
 
@@ -80,10 +78,7 @@ export default function RadioMessage({ driver, capture, basePath, gmtOffset }: P
 		<motion.li
 			animate={{ opacity: 1, scale: 1 }}
 			initial={{ opacity: 0, scale: 0.9 }}
-			className={clsx(
-				"rounded-xl border bg-white/5 p-4 backdrop-blur-sm transition-all hover:bg-white/10",
-				{ "border-blue-500/30 bg-blue-900/20": favoriteDriver, "border-white/10": !favoriteDriver }
-			)}
+			className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm transition-all hover:bg-white/10"
 		>
 			<div className="mb-3 flex items-center gap-2 text-xs font-mono text-gray-400">
 				<time dateTime={localTime} className="font-medium">

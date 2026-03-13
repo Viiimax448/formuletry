@@ -15,7 +15,7 @@ COPY api api
 COPY simulator simulator
 
 FROM builder-base AS builder
-RUN cargo b -r
+RUN cargo b -r -p realtime -p api
 
 
 # Default target for Koyeb (Realtime)

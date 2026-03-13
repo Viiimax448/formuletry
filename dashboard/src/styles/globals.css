@@ -48,6 +48,28 @@ body {
 		-ms-overflow-style: none;
 		scrollbar-width: none;
 	}
+
+	/* Override bg-deep-slate/90 to allow transparent backgrounds */
+	.bg-deep-slate\/90 {
+		background-color: transparent !important;
+	}
+
+	/* Force driver row backgrounds to work properly */
+	.driver-row.bg-sky-800\/20 {
+		background-color: rgba(7, 89, 133, 0.2) !important;
+	}
+	
+	.driver-row.bg-violet-800\/20 {
+		background-color: rgba(91, 33, 182, 0.2) !important;
+	}
+	
+	.driver-row.bg-red-800\/20 {
+		background-color: rgba(153, 27, 27, 0.2) !important;
+	}
+	
+	.driver-row.bg-indigo-500\/20 {
+		background-color: rgba(99, 102, 241, 0.2) !important;
+	}
 }
 
 .pulse-loading-spinner {
