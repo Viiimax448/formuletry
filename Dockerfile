@@ -27,4 +27,5 @@ CMD [ "/realtime" ]
 # Alternative targets
 FROM alpine:3 AS api
 COPY --from=builder /usr/src/app/target/release/api .
+RUN mkdir -p /target/release && ln -sf /api /target/release/api
 CMD [ "/api" ]
