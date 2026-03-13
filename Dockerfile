@@ -28,4 +28,5 @@ CMD [ "/api" ]
 # Default target (Realtime)
 FROM alpine:3
 COPY --from=builder /usr/src/app/target/release/realtime .
+RUN mkdir -p /target/release && ln -sf /realtime /target/release/api && ln -sf /realtime /api
 CMD [ "/realtime" ]
