@@ -18,14 +18,14 @@ FROM builder-base AS builder
 RUN cargo b -r -p realtime -p api
 
 
-# Default target for Koyeb (Realtime)
-FROM alpine:3
-COPY --from=builder /usr/src/app/target/release/realtime .
-CMD [ "/realtime" ]
-
-
-# Alternative targets
+# Alternative target (API)
 FROM alpine:3 AS api
 COPY --from=builder /usr/src/app/target/release/api .
 RUN mkdir -p /target/release && ln -sf /api /target/release/api
 CMD [ "/api" ]
+
+
+# Default target (Realtime)
+FROM alpine:3
+COPY --from=builder /usr/src/app/target/release/realtime .
+CMD [ "/realtime" ]
