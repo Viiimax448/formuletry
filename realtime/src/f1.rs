@@ -1,7 +1,8 @@
-use anyhow::Error;
+use anyhow::{anyhow, Error};
 use serde_json::{Value, json};
 use tokio::sync::broadcast::Sender;
 use tokio_stream::StreamExt;
+use tokio::time::{timeout, Duration};
 use tracing::{error, trace, warn};
 
 use crate::services::state_service::StateService;
@@ -40,7 +41,28 @@ pub async fn ingest_f1(
 
     let mut stream = signalr::listen(signalr_client);
 
-    while let Some(items) = stream.next().await {
+    // Watchdog: si no recibimos ningún mensaje en este periodo, consideramos la conexión colgada
+    let idle_timeout = Duration::from_secs(15);
+
+    loop {
+        // Esperamos al siguiente batch de items con timeout
+        let next_items = match timeout(idle_timeout, stream.next()).await {
+            Ok(maybe_items) => maybe_items,
+            Err(_) => {
+                warn!(
+                    ?idle_timeout,
+                    "SignalR stream idle for too long, restarting connection"
+                );
+                return Err(anyhow!("SignalR idle timeout"));
+            }
+        };
+
+        // Si el stream terminó, dejamos que la capa superior reintente la conexión
+        let Some(items) = next_items else {
+            warn!("SignalR stream ended, restarting connection");
+            return Ok(());
+        };
+
         for update in items {
             trace!(?update.topic, "Received data for topic");
 
@@ -55,8 +77,6 @@ pub async fn ingest_f1(
             };
         }
     }
-
-    Ok(())
 }
 
 async fn handle_update(

@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Props = {
 	isOpen: boolean;
@@ -8,17 +9,23 @@ type Props = {
 };
 
 export default function DonationModal({ isOpen, onClose }: Props) {
-	if (!isOpen) return null;
+	const [mounted, setMounted] = useState(false);
 
-	return (
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	if (!isOpen || !mounted) return null;
+
+	return createPortal(
 		<div className="fixed inset-0 z-50 overflow-y-auto">
 			{/* Backdrop */}
 			<div className="flex min-h-full items-center justify-center p-4">
-				<div 
+				<div
 					className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
 					onClick={onClose}
 				/>
-				
+
 				{/* Modal */}
 				<div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-slate-card border border-white/10 p-8 shadow-2xl transition-all">
 					{/* Close Button */}
@@ -53,7 +60,7 @@ export default function DonationModal({ isOpen, onClose }: Props) {
 									<span className="text-3xl">🇦🇷</span>
 									<div className="text-left">
 										<h4 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">
-										Tecito
+											Tecito
 										</h4>
 										<p className="text-sm text-gray-400">
 											MercadoPago / ARS
@@ -90,6 +97,7 @@ export default function DonationModal({ isOpen, onClose }: Props) {
 					</div>
 				</div>
 			</div>
-		</div>
+		</div>,
+		document.body
 	);
 }

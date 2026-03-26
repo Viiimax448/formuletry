@@ -7,6 +7,7 @@ import TrackViolations from "@/components/dashboard/TrackViolations";
 import Map from "@/components/dashboard/Map";
 import DashboardSupportWidget from "@/components/dashboard/DashboardSupportWidget";
 import StickyBanner from "@/components/dashboard/StickyBanner";
+import Link from "next/link";
 
 export default function Page() {
 	return (
@@ -15,6 +16,23 @@ export default function Page() {
 				<div className="w-full lg:w-auto lg:flex-shrink-0">
 					<div className="overflow-x-auto md:overflow-x-visible">
 						<LeaderBoard />
+					</div>
+
+					{/* Live Weather button inside LeaderBoard block */}
+					<div className="mt-2 w-full">
+						<Link
+							href="/weather?from=dashboard"
+							prefetch={false}
+							className="flex w-full items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-200 hover:bg-white/10 hover:border-cyan-400/40 transition-colors duration-200"
+						>
+							<svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+							</svg>
+							<div className="flex flex-col leading-tight">
+								<span className="font-medium">Live Weather</span>
+								<span className="text-[10px] text-gray-400">Radar &amp; forecast</span>
+							</div>
+						</Link>
 					</div>
 					<DashboardSupportWidget />
 				</div>

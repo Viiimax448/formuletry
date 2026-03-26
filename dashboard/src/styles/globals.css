@@ -70,6 +70,16 @@ body {
 	.driver-row.bg-indigo-500\/20 {
 		background-color: rgba(99, 102, 241, 0.2) !important;
 	}
+
+	/* Weather map Doppler-style filters */
+	.doppler-base-tiles img {
+		filter: saturate(1.2) contrast(1.15) brightness(0.7);
+	}
+
+	.doppler-rain-tiles img {
+		filter: contrast(3) saturate(3) brightness(1.2) hue-rotate(-10deg);
+		mix-blend-mode: screen;
+	}
 }
 
 .pulse-loading-spinner {
