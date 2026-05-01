@@ -153,8 +153,8 @@ function WeatherPageContent() {
         </h1>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_500px] gap-6">
-        {/* Left Column */}
+      <div className="w-full flex flex-col gap-6 lg:max-w-5xl lg:mx-auto">
+        {/* Forecast column */}
         <section>
           {loading ? (
             <p>Cargando pronóstico...</p>
@@ -276,7 +276,7 @@ function WeatherPageContent() {
           )}
         </section>
 
-        {/* Right Column - Radar */}
+        {/* Radar debajo del pronóstico (también en desktop) */}
         <section>
           <div className="h-[30rem] lg:h-full min-h-[500px] rounded-2xl overflow-hidden">
             <WeatherMap />

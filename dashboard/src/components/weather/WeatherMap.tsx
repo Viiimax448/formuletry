@@ -1,7 +1,7 @@
 export default function WeatherMap() {
-  // Coordenadas de Suzuka Circuit, Japón (puedes cambiarlas luego por variables)
-  const lat = 34.8431;
-  const lon = 136.5419;
+  // Coordenadas de Miami International Autodrome, Miami (puedes cambiarlas luego por variables)
+  const lat = 25.9581;
+  const lon = -80.2389;
 
   return (
     <div className="w-full h-full rounded-xl overflow-hidden bg-[#1F2937]">
