@@ -226,14 +226,15 @@ function WeatherPageContent() {
               </div>
               <div className="text-[10px] md:text-sm mt-1 md:mt-2">
                 <span className="text-white font-semibold">{Math.round(tMax)}°</span>{" "}
-                <span className="text-gray-400">{Math.round(tMin)}°</span>
+                <span className="text-gray-400">{Math.round(tMin)}° </span>
               </div>
             </button>
                   );
                 })}
               </div>
 
-          {/* Hourly Forecast Slider */}
+{/* Hourly Forecast otro comentario  */}
+          {/* Hourly Forecast Slider aasssa  */}
           {hourlySlices.length > 0 && (
             <div className="mt-4 pt-4 border-t border-white/10">
               <h3 className="text-xs md:text-sm font-semibold text-gray-200 mb-2">
