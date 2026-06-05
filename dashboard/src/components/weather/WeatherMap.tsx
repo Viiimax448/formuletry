@@ -1,7 +1,7 @@
 export default function WeatherMap() {
-  // Coordenadas de Miami International Autodrome, Miami (puedes cambiarlas luego por variables)
-  const lat = 25.9581;
-  const lon = -80.2389;
+  // Coordenadas de Monaco (GP de Monaco)
+  const lat = 43.7347;
+  const lon = 7.4206;
 
   return (
     <div className="w-full h-full rounded-xl overflow-hidden bg-[#1F2937]">
