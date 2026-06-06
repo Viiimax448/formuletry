@@ -52,12 +52,29 @@ pub async fn start(state_service: StateService, tx: Sender<String>) -> Result<()
 pub fn cors_layer() -> Result<CorsLayer, Error> {
     let origin = env::var("ORIGIN").unwrap_or_else(|_| "https://formuletry.vercel.app;https://f1-dash.com".to_string());
 
-    let origins = origin
-        .split(';')
-        .filter_map(|o| HeaderValue::from_str(o).ok())
-        .collect::<Vec<HeaderValue>>();
+    // Handle CORS with robust wildcard/empty logic
+    let cors = if origin.trim() == "*" || origin.trim().is_empty() {
+        CorsLayer::new()
+            .allow_origin(tower_http::cors::Any)
+            .allow_headers(tower_http::cors::Any)
+    } else {
+        let origins: Vec<HeaderValue> = origin
+            .split(';')
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty() && *s != "*")
+            .filter_map(|o| HeaderValue::from_str(o).ok())
+            .collect();
 
-    Ok(CorsLayer::new()
-        .allow_origin(origins)
-        .allow_methods([Method::GET, Method::CONNECT]))
+        if origins.is_empty() {
+            CorsLayer::new()
+                .allow_origin(tower_http::cors::Any)
+                .allow_headers(tower_http::cors::Any)
+        } else {
+            CorsLayer::new()
+                .allow_origin(origins)
+                .allow_headers(tower_http::cors::Any)
+        }
+    };
+
+    Ok(cors.allow_methods([Method::GET, Method::CONNECT, Method::OPTIONS]))
 }
