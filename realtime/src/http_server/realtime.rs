@@ -5,6 +5,7 @@ use tokio_stream::wrappers::BroadcastStream;
 use axum::{
     extract::State,
     response::{
+        IntoResponse,
         Sse,
         sse::{Event, KeepAlive},
     },
@@ -16,7 +17,7 @@ use crate::http_server::Context;
 
 pub async fn sse_stream(
     State(ctx): State<Arc<Context>>,
-) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+) -> impl IntoResponse {
     debug!("sse stream starting");
 
     let initial_state = ctx
@@ -54,5 +55,13 @@ pub async fn sse_stream(
     let stream = initial.chain(updates);
     let keep_alive = KeepAlive::new().text("keep-alive-text");
 
-    Sse::new(stream).keep_alive(keep_alive)
+    let sse = Sse::new(stream).keep_alive(keep_alive);
+
+    (
+        [
+            ("cache-control", "no-cache, no-transform"),
+            ("x-accel-buffering", "no"),
+        ],
+        sse,
+    )
 }
