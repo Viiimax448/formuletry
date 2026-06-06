@@ -10,6 +10,26 @@ struct NegotiationResponse {
     connection_token: String,
 }
 
+const TOPICS: [&str; 17] = [
+    "Heartbeat",
+    "CarData.z",
+    "Position.z",
+    "ExtrapolatedClock",
+    "TimingStats",
+    "TimingAppData",
+    "WeatherData",
+    "TrackStatus",
+    "SessionStatus",
+    "DriverList",
+    "RaceControlMessages",
+    "SessionInfo",
+    "SessionData",
+    "LapCount",
+    "TimingData",
+    "TeamRadio",
+    "ChampionshipPrediction",
+];
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
@@ -23,8 +43,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(|s| s.to_string());
     
     let text = res.text().await?;
-    println!("Negotiate Response: {}", text);
-    
     let neg: NegotiationResponse = serde_json::from_str(&text)?;
     println!("Connection Token: {}", neg.connection_token);
     
@@ -39,36 +57,41 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         HeaderValue::from_static("gzip,identity"),
     );
     if let Some(ref c) = cookie {
-        println!("Setting cookie: {}", c);
         req_headers.insert(header::COOKIE, c.parse()?);
     }
     
-    let (mut stream, response) = tokio_tungstenite::connect_async(req).await?;
-    println!("Connected! WebSocket response headers: {:?}", response.headers());
+    let (mut stream, _response) = tokio_tungstenite::connect_async(req).await?;
+    println!("Connected!");
     
     // Step 4: Handshake
     let handshake = "{\"protocol\":\"json\",\"version\":1}\u{1E}";
-    println!("Sending handshake: {:?}", handshake);
     stream.send(Message::Text(handshake.to_string().into())).await?;
     
-    // Step 5: Receive handshake response
     if let Some(msg) = stream.next().await {
-        let msg = msg?;
-        println!("Received handshake response: {:?}", msg);
+        println!("Handshake Response: {:?}", msg?);
     }
     
-    // Step 6: Subscribe to Heartbeat topic
-    let subscribe_msg = "{\"type\":1,\"target\":\"Subscribe\",\"arguments\":[[\"Heartbeat\"]],\"invocationId\":\"1\"}\u{1E}";
-    println!("Sending subscribe message: {:?}", subscribe_msg);
-    stream.send(Message::Text(subscribe_msg.to_string().into())).await?;
+    // Step 6: Subscribe to ALL topics
+    let topics_json = serde_json::to_string(&TOPICS)?;
+    let subscribe_msg = format!("{{\"type\":1,\"target\":\"Subscribe\",\"arguments\":[{}],\"invocationId\":\"1\"}}\u{1E}", topics_json);
+    println!("Sending subscribe message");
+    stream.send(Message::Text(subscribe_msg.into())).await?;
     
     // Step 7: Receive messages
     let mut count = 0;
     while let Some(msg) = stream.next().await {
         let msg = msg?;
-        println!("Received message: {:?}", msg);
-        count += 1;
-        if count >= 5 {
+        if let Message::Text(ref txt) = msg {
+            for part in txt.split('\u{1E}') {
+                if part.is_empty() { continue; }
+                println!("MESSAGE PART: {}", part);
+                count += 1;
+            }
+        } else {
+            println!("Non-text message: {:?}", msg);
+            count += 1;
+        }
+        if count >= 15 {
             break;
         }
     }
