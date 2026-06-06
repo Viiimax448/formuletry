@@ -34,16 +34,23 @@ pub async fn ingest_f1(
     state_service: StateService,
     update_sender: Sender<String>,
 ) -> Result<(), Error> {
-    let mut signalr_client = signalr::create_client(URL, HUB).await?;
+    println!("🏁 [DIAGNÓSTICO] Iniciando ingest_f1...");
 
+    println!("⏳ [DIAGNÓSTICO] Intentando conectar a SignalR Core...");
+    let mut signalr_client = signalr::create_client(URL, HUB).await?;
+    println!("✅ [DIAGNÓSTICO] Cliente SignalR creado con éxito!");
+
+    println!("⏳ [DIAGNÓSTICO] Suscribiéndose a los tópicos de la F1...");
     let initial = signalr::subscribe(&mut signalr_client, &TOPICS).await?;
     handle_initial(&state_service, initial).await?;
+    println!("✅ [DIAGNÓSTICO] Suscripción exitosa. Estado inicial recibido.");
 
     let mut stream = signalr::listen(signalr_client);
 
     // Watchdog: si no recibimos ningún mensaje en este periodo, consideramos la conexión colgada
     let idle_timeout = Duration::from_secs(15);
 
+    println!("📡 [DIAGNÓSTICO] Entrando al loop de escucha de datos...");
     loop {
         // Esperamos al siguiente batch de items con timeout
         let next_items = match timeout(idle_timeout, stream.next()).await {
