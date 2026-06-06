@@ -22,23 +22,14 @@ export const useSocket = ({ handleInitial, handleUpdate }: Props) => {
 		console.log("Connecting to live URL:", env.NEXT_PUBLIC_LIVE_URL);
 		const sse = new EventSource(`${env.NEXT_PUBLIC_LIVE_URL}/api/realtime`);
 		
-		sse.onopen = () => {
-			console.log("✅ SSE connection successfully opened!");
-			setConnected(true);
-		};
-
-		sse.onerror = (e) => {
-			console.error("❌ SSE connection error or closed:", e);
-			setConnected(false);
-		};
+		sse.onerror = () => setConnected(false);
+		sse.onopen = () => setConnected(true);
 		
 		sse.addEventListener("initial", (message) => {
-			console.log("📦 Received 'initial' event data:", message.data);
 			handleInitial(JSON.parse(message.data));
 		});
 		
 		sse.addEventListener("update", (message) => {
-			console.log("🔄 Received 'update' event data:", message.data);
 			handleUpdate(JSON.parse(message.data));
 		});
 		
