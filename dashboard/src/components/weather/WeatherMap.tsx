@@ -1,7 +1,7 @@
 export default function WeatherMap() {
-  // Coordenadas de Monaco (GP de Monaco)
-  const lat = 43.7347;
-  const lon = 7.4206;
+  // Coordenadas de Austria (GP de Austria)
+  const lat = 47.2197;
+  const lon = 14.7647;
 
   return (
     <div className="w-full h-full rounded-xl overflow-hidden bg-[#1F2937]">

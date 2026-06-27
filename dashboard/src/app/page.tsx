@@ -43,11 +43,11 @@ function NextEventCard() {
 		<Link href="/dashboard" prefetch={false} className="block rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6">
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-4">
-					<Flag countryCode="mon" className="h-8 w-12 rounded shadow-sm" />
+					<Flag countryCode="aut" className="h-8 w-12 rounded shadow-sm" />
 					<div>
 						<p className="text-xs font-medium uppercase tracking-wider text-blue-400">Next Event</p>
 						<h3 className="text-lg font-bold font-sans text-white">
-							Monaco Grand Prix
+							Austrian Grand Prix
 						</h3>
 					</div>
 				</div>
