@@ -1,7 +1,7 @@
 export default function WeatherMap() {
-  // Coordenadas de Austria (GP de Austria)
-  const lat = 47.2197;
-  const lon = 14.7647;
+  // Coordenadas de Países Bajos (GP de Países Bajos - Zandvoort)
+  const lat = 52.3889;
+  const lon = 4.54028;
 
   return (
     <div className="w-full h-full rounded-xl overflow-hidden bg-[#1F2937]">
