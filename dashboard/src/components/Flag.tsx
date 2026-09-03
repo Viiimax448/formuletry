@@ -15,10 +15,14 @@ export default function Flag({ countryCode, className }: Props) {
 		setHasError(false);
 	}, [countryCode]);
 
+	const hasCustomDimensions =
+		className && (className.includes("h-") || className.includes("w-"));
+
 	return (
 		<div
 			className={clsx(
 				"relative overflow-hidden rounded-lg shrink-0 flex items-center justify-center",
+				!hasCustomDimensions && "h-10 w-14",
 				className
 			)}
 		>
