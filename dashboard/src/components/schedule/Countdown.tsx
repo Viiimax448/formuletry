@@ -1,9 +1,8 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { duration, now, utc } from "moment";
-
 import type { Session } from "@/types/schedule.type";
 
 type Props = {
@@ -17,17 +16,15 @@ export default function Countdown({ next, type }: Props) {
 	>([null, null, null, null]);
 
 	const nextMoment = utc(next.start);
-
 	const requestRef = useRef<number | null>(null);
 
 	useEffect(() => {
 		const animateNextFrame = () => {
 			const diff = duration(nextMoment.diff(now()));
-
-			const days = parseInt(diff.asDays().toString());
+			const d = parseInt(diff.asDays().toString());
 
 			if (diff.asSeconds() > 0) {
-				setDuration([days, diff.hours(), diff.minutes(), diff.seconds()]);
+				setDuration([d, diff.hours(), diff.minutes(), diff.seconds()]);
 			} else {
 				setDuration([0, 0, 0, 0]);
 			}
@@ -39,83 +36,50 @@ export default function Countdown({ next, type }: Props) {
 		return () => (requestRef.current ? cancelAnimationFrame(requestRef.current) : void 0);
 	}, [nextMoment]);
 
+	const items = [
+		{ label: "DAYS", val: days, isCyan: false },
+		{ label: "HOURS", val: hours, isCyan: false },
+		{ label: "MINS", val: minutes, isCyan: false },
+		{ label: "SECS", val: seconds, isCyan: true },
+	];
+
 	return (
 		<div>
-			<p className="mb-4 text-base sm:text-lg font-medium font-sans text-gray-300">
-				Next {type === "race" ? "race" : "session"} in
-			</p>
+			<div className="flex items-center gap-2 mb-3">
+				<span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse" />
+				<p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-neutral-400">
+					Countdown to {type === "race" ? "Grand Prix Race" : next.kind}
+				</p>
+			</div>
 
-			<AnimatePresence>
-				<div className="grid auto-cols-max grid-flow-col gap-2 sm:gap-4 md:gap-6 text-center">
-					<div className="flex flex-col items-center">
-						{days != undefined && days != null ? (
+			<div className="grid grid-cols-4 gap-2 sm:gap-3 text-center">
+				{items.map((item) => (
+					<div
+						key={item.label}
+						className="rounded-xl bg-neutral-950/90 border border-neutral-800/90 p-2.5 sm:p-3.5 flex flex-col items-center justify-center shadow-inner"
+					>
+						{item.val !== null ? (
 							<motion.p
-								className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-mono text-white"
-								key={days}
-								initial={{ y: -10, opacity: 0 }}
+								key={item.val}
+								initial={{ y: -6, opacity: 0 }}
 								animate={{ y: 0, opacity: 1 }}
-								exit={{ y: 10, opacity: 0 }}
+								className={`text-xl sm:text-2xl md:text-3xl font-extrabold font-mono ${
+									item.isCyan
+										? "text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+										: "text-white"
+								}`}
 							>
-								{String(days).padStart(2, '0')}
+								{String(item.val).padStart(2, "0")}
 							</motion.p>
 						) : (
-							<div className="h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 md:h-14 md:w-20 lg:h-16 lg:w-24 animate-pulse rounded-lg bg-white/10" />
+							<div className="h-7 sm:h-9 w-10 sm:w-12 animate-pulse rounded bg-neutral-900" />
 						)}
-						<p className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium font-sans uppercase tracking-wide text-gray-400">Days</p>
+						<span className="mt-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-neutral-500">
+							{item.label}
+						</span>
 					</div>
-
-					<div className="flex flex-col items-center">
-						{hours != undefined && hours != null ? (
-							<motion.p
-								className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-mono text-white"
-								key={hours}
-								initial={{ y: -10, opacity: 0 }}
-								animate={{ y: 0, opacity: 1 }}
-								exit={{ y: 10, opacity: 0 }}
-							>
-								{String(hours).padStart(2, '0')}
-							</motion.p>
-						) : (
-							<div className="h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 md:h-14 md:w-20 lg:h-16 lg:w-24 animate-pulse rounded-lg bg-white/10" />
-						)}
-						<p className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium font-sans uppercase tracking-wide text-gray-400">Hours</p>
-					</div>
-
-					<div className="flex flex-col items-center">
-						{minutes != undefined && minutes != null ? (
-							<motion.p
-								className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-mono text-white"
-								key={minutes}
-								initial={{ y: -10, opacity: 0 }}
-								animate={{ y: 0, opacity: 1 }}
-								exit={{ y: 10, opacity: 0 }}
-							>
-								{String(minutes).padStart(2, '0')}
-							</motion.p>
-						) : (
-							<div className="h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 md:h-14 md:w-20 lg:h-16 lg:w-24 animate-pulse rounded-lg bg-white/10" />
-						)}
-						<p className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium font-sans uppercase tracking-wide text-gray-400">Minutes</p>
-					</div>
-
-					<div className="flex flex-col items-center">
-						{seconds != undefined && seconds != null ? (
-							<motion.p
-								className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-mono text-blue-400"
-								key={seconds}
-								initial={{ y: -10, opacity: 0 }}
-								animate={{ y: 0, opacity: 1 }}
-								exit={{ y: 10, opacity: 0 }}
-							>
-								{String(seconds).padStart(2, '0')}
-							</motion.p>
-						) : (
-							<div className="h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 md:h-14 md:w-20 lg:h-16 lg:w-24 animate-pulse rounded-lg bg-white/10" />
-						)}
-						<p className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium font-sans uppercase tracking-wide text-gray-400">Seconds</p>
-					</div>
-				</div>
-			</AnimatePresence>
+				))}
+			</div>
 		</div>
 	);
 }

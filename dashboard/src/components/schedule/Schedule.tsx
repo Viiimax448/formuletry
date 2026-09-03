@@ -1,45 +1,83 @@
+"use client";
+
+import { useMemo } from "react";
 import Round from "@/components/schedule/Round";
 import type { Round as RoundType } from "@/types/schedule.type";
-import { getScheduleStatic } from "@/data/f1-calendar";
+import { getScheduleStatic, getNextEvent } from "@/data/f1-calendar";
 
-// Magia pura: Vercel cacheará esto por 24 horas (86400 segundos)
-export const revalidate = 86400;
+export default function Schedule() {
+	const { sortedSchedule, activeRoundName } = useMemo(() => {
+		const now = new Date();
 
-export const getSchedule = async () => {
-    try {
-        const schedule: RoundType[] = getScheduleStatic();
+		// Clean up raw schedule names
+		const rawSchedule: RoundType[] = getScheduleStatic().map((event) => {
+			if (event.name.includes("PRE-SEASON TESTING")) {
+				return {
+					...event,
+					name: event.name.replace("PRE-SEASON TESTING", "Preseason Testing Day"),
+				};
+			}
+			return event;
+		});
 
-        schedule.forEach((event) => {
-            if (event.name.includes("PRE-SEASON TESTING")) {
-                event.name = event.name.replace("PRE-SEASON TESTING", "Preseason Testing Day");
-            }
-        });
+		// Calculate dynamic time status for every race
+		const enhanced = rawSchedule.map((round, idx) => {
+			const start = new Date(round.start);
+			const end = new Date(round.end);
+			const isOver = end < now;
+			const isCurrent = now >= start && now <= end;
+			const isUpcoming = start > now;
 
-        return schedule;
-    } catch (e) {
-        console.error("error fetching schedule", e);
-        return null;
-    }
-};
+			return {
+				...round,
+				over: isOver,
+				isCurrent,
+				isUpcoming,
+				originalIndex: idx + 1,
+			};
+		});
 
-export default async function Schedule() {
-    const schedule = await getSchedule();
+		// Find the active round (current in progress or the next upcoming)
+		const active =
+			enhanced.find((r) => r.isCurrent) ||
+			enhanced.find((r) => r.isUpcoming) ||
+			enhanced[0];
 
-    if (!schedule) {
-        return (
-            <div className="flex h-44 flex-col items-center justify-center">
-                <p>Schedule not found</p>
-            </div>
-        );
-    }
+		const activeName = active?.name;
 
-    const next = schedule.filter((round) => !round.over)[0];
+		// 1. Actual / Siguiente
+		const currentOrNext = enhanced.filter((r) => r.name === activeName);
 
-    return (
-        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-            {schedule.map((round, roundI) => (
-                <Round nextName={next?.name} round={round} key={`round.${roundI}`} />
-            ))}
-        </div>
-    );
+		// 2. Próximos (resto de futuras carreras)
+		const upcoming = enhanced.filter(
+			(r) => r.isUpcoming && r.name !== activeName
+		);
+
+		// 3. Pasados (carreras que ya finalizaron)
+		const past = enhanced.filter(
+			(r) => r.over && r.name !== activeName
+		);
+
+		// Combinar en orden: Actual -> Próximos -> Pasados
+		return {
+			sortedSchedule: [...currentOrNext, ...upcoming, ...past],
+			activeRoundName: activeName,
+		};
+	}, []);
+
+	return (
+		<div className="space-y-6">
+			{/* Grid de Carreras Ordenadas: Actual -> Próximas -> Pasadas */}
+			<div className="grid gap-4 md:gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+				{sortedSchedule.map((round) => (
+					<Round
+						key={round.name}
+						nextName={activeRoundName}
+						round={round}
+						roundIndex={round.originalIndex}
+					/>
+				))}
+			</div>
+		</div>
+	);
 }

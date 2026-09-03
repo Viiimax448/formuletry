@@ -33,10 +33,38 @@
 .animate-pulse-dot {
 	animation: pulse-dot 2s ease-in-out infinite;
 }
+@keyframes slowGlow {
+	0%, 100% {
+		transform: scale(1) translate(0, 0);
+		opacity: 0.08;
+	}
+	50% {
+		transform: scale(1.25) translate(-15px, 15px);
+		opacity: 0.18;
+	}
+}
+
+.animate-slow-glow {
+	animation: slowGlow 8s ease-in-out infinite;
+}
+
+@keyframes lightSweep {
+	0% {
+		transform: translateX(-150%) skewX(-20deg);
+	}
+	35%, 100% {
+		transform: translateX(250%) skewX(-20deg);
+	}
+}
+
+.animate-sweep {
+	animation: lightSweep 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 /* Global Background Override */
 body {
-	background-color: var(--color-deep-slate) !important;
-	background: var(--color-deep-slate) !important;
+	background-color: #000000 !important;
+	background: #000000 !important;
 }
 
 @layer utilities {

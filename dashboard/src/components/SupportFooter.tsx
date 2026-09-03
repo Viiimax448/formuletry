@@ -1,48 +1,71 @@
 "use client";
 
+import Link from "next/link";
 import { useDonationModal } from "@/hooks/useDonationModal";
 
 export default function SupportFooter() {
 	const donationModal = useDonationModal();
 
-	const handleSupportClick = () => {
-		donationModal.open();
-	};
-
 	return (
-		<footer className="mt-16 border-t border-white/10 bg-deep-slate py-8">
-			<div className="mx-auto max-w-7xl px-6">
-				<div className="flex flex-col items-center justify-center gap-4 text-center">
-					{/* Support Button */}
-					<button
-						onClick={handleSupportClick}
-						type="button"
-						className="relative z-10 cursor-pointer flex items-center gap-2 rounded-lg border border-pink-500/30 bg-pink-500/10 px-4 py-2 font-medium text-pink-400 transition-all duration-200 hover:border-pink-400 hover:bg-pink-500/20 hover:text-pink-300 hover:scale-105 active:scale-95"
-					>
-						<span>Support Formuletry</span>
-						<span>❤️</span>
-					</button>
-					
-					<p className="text-sm text-gray-500">
-						Professional F1 telemetry platform · Real-time data analysis · 
-						<span className="text-blue-400 font-medium"> Formuletry</span>
-					</p>
+		<footer className="relative z-10 border-t border-neutral-800/80 bg-[#0a0a0a] px-5 md:px-6 py-6 md:py-8 text-center space-y-3.5 mt-auto">
+			<div className="max-w-5xl mx-auto flex flex-col items-center justify-center gap-3">
+				{/* Legal Navigation Links */}
+				<div className="flex flex-wrap items-center justify-center gap-x-4 md:gap-x-6 gap-y-1.5 text-[11px] md:text-sm text-neutral-400 font-medium">
+					<Link href="/privacy" className="hover:text-cyan-400 transition-colors">
+						Privacy Policy
+					</Link>
+					<span className="text-neutral-700">·</span>
+					<Link href="/terms" className="hover:text-cyan-400 transition-colors">
+						Terms of Service
+					</Link>
+					<span className="text-neutral-700">·</span>
+					<Link href="/about" className="hover:text-cyan-400 transition-colors">
+						About Us
+					</Link>
+					<span className="text-neutral-700">·</span>
+					<Link href="/contact" className="hover:text-cyan-400 transition-colors">
+						Contact
+					</Link>
+				</div>
 
-					<p className="text-xs text-gray-600">
-					Based on <a href="https://github.com/slowlydev/f1-dash" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">f1-dash</a> by slowlydev · Licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">GNU AGPL v3</a> · <a href="https://github.com/Viiimax/formuletry" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 font-medium">View Source Code</a>
+				{/* Platform Details & AGPL License */}
+				<p className="text-[10px] md:text-xs text-neutral-500 leading-relaxed max-w-2xl mx-auto">
+					Professional F1 Telemetry & Timing ·{" "}
+					<span className="text-white font-bold">FORMULETRY</span> · Based on{" "}
+					<a
+						href="https://github.com/slowlydev/f1-dash"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="text-neutral-400 hover:text-cyan-400 transition-colors underline underline-offset-2"
+					>
+						f1-dash
+					</a>{" "}
+					· Licensed under{" "}
+					<a
+						href="https://www.gnu.org/licenses/agpl-3.0.html"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="text-neutral-400 hover:text-cyan-400 transition-colors"
+					>
+						GNU AGPL v3
+					</a>{" "}
+					·{" "}
+					<a
+						href="https://github.com/Viiimax/formuletry"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
+					>
+						View Source Code
+					</a>
 				</p>
 
-				<p className="text-xs text-gray-600">
-						This project is unofficial and is not associated in any way with the Formula 1 companies. F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX and related marks are trademarks of Formula One Licensing B.V.
-					</p>
-
-				<p className="text-xs text-gray-600">
-  <a href="/privacy" className="text-blue-400 hover:text-blue-300">Privacy Policy</a> ·
-  <a href="/terms" className="text-blue-400 hover:text-blue-300">Terms of Service</a> ·
-  <a href="/about" className="text-blue-400 hover:text-blue-300">About Us</a> ·
-  <a href="/contact" className="text-blue-400 hover:text-blue-300">Contact</a>
-</p>
-				</div>
+				{/* F1 Legal Disclaimer */}
+				<p className="text-[9px] md:text-xs text-neutral-600 leading-relaxed max-w-xl mx-auto">
+					This project is unofficial and is not associated in any way with the Formula 1 companies.
+					F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX and related
+					marks are trademarks of Formula One Licensing B.V.
+				</p>
 			</div>
 		</footer>
 	);

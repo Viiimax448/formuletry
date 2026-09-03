@@ -16,20 +16,22 @@ export default function Flag({ countryCode, className }: Props) {
 	}, [countryCode]);
 
 	return (
-		<div className={clsx("flex h-12 w-16 content-center justify-center shrink-0", className)}>
+		<div
+			className={clsx(
+				"relative overflow-hidden rounded-lg shrink-0 flex items-center justify-center",
+				className
+			)}
+		>
 			{countryCode && !hasError ? (
-				/* Usamos img estándar para evitar el Image Optimization Engine de Vercel en SVGs */
 				<img
 					src={`/country-flags/${countryCode.toLowerCase()}.svg`}
 					alt={countryCode}
-					width={64}
-					height={48}
-					className="overflow-hidden rounded-lg object-cover"
+					className="w-full h-full object-cover block"
 					onError={() => setHasError(true)}
 				/>
 			) : (
-				<div className="h-full w-full overflow-hidden rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
-					<span className="text-[10px] text-slate-500 font-bold uppercase">
+				<div className="h-full w-full overflow-hidden rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center">
+					<span className="text-[10px] text-neutral-400 font-bold uppercase">
 						{countryCode || "?"}
 					</span>
 				</div>
