@@ -20,13 +20,13 @@ export default function DriverLapTime({ last, best, hasFastest }: Props) {
 	const bestValue = sanitizeLapTime(best.Value);
 
 	return (
-		<div className="place-self-start">
+		<div className="place-self-start flex flex-col justify-center">
 			<p
 				className={clsx(
-					"text-xs leading-tight font-medium font-mono tabular-nums",
+					"text-[10.5px] leading-none font-bold font-mono tabular-nums",
 					{
-						"text-violet-600!": last.OverallFastest,
-						"text-emerald-500!": last.PersonalFastest,
+						"text-violet-400!": last.OverallFastest,
+						"text-emerald-400!": last.PersonalFastest,
 						"text-zinc-500!": !last.Value,
 					}
 				)}
@@ -35,9 +35,9 @@ export default function DriverLapTime({ last, best, hasFastest }: Props) {
 			</p>
 			<p
 				className={clsx(
-					"text-[10px] leading-tight text-zinc-500 font-mono tabular-nums",
+					"text-[8.5px] leading-none text-zinc-400 font-mono tabular-nums mt-0.5",
 					{
-						"text-violet-600!": hasFastest,
+						"text-violet-400!": hasFastest,
 						"text-zinc-500!": !best.Value,
 					}
 				)}

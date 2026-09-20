@@ -14,6 +14,7 @@ import { useDataStore } from '@/stores/useDataStore';
 import SessionInfo from '@/components/SessionInfo';
 import WeatherInfo from '@/components/WeatherInfo';
 import TrackInfo from '@/components/TrackInfo';
+import MobileHeader from '@/components/dashboard/MobileHeader';
 
 type Props = {
 	children: ReactNode;
@@ -35,14 +36,13 @@ export default function DashboardLayout({ children }: Props) {
 		<div className="flex w-full bg-[#111827] p-2 md:min-h-screen">
 			<motion.div layout="size" className="flex w-full flex-1 flex-col gap-2">
 				<DesktopStaticBar show={!syncing || ended} />
-				<MobileStaticBar show={!syncing || ended} />
+				{(!syncing || ended) && <MobileHeader />}
 
 				<div
 					className={
 						!syncing || ended ? 'w-full rounded-lg' : 'hidden'
 					}
 				>
-					<MobileDynamicBar />
 					{children}
 				</div>
 

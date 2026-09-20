@@ -2,7 +2,6 @@
 
 import clsx from "clsx";
 import { motion } from "motion/react";
-import { useState, useEffect } from "react";
 
 import type { Driver, TimingDataDriver } from "@/types/state.type";
 
@@ -16,7 +15,6 @@ import DriverTire from "./DriverTire";
 import DriverMiniSectors from "./DriverMiniSectors";
 import DriverLapTime from "./DriverLapTime";
 import DriverCarMetrics from "./DriverCarMetrics";
-import { NotepadText } from "lucide-react";
 
 type Props = {
 	position: number;
@@ -57,27 +55,19 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 
 	const compactMode = useSettingsStore((state) => state.compactMode);
 
-	// Responsive grid template columns
-	const [isMobile, setIsMobile] = useState(false);
-
-	useEffect(() => {
-		const checkMobile = () => {
-			setIsMobile(window.innerWidth < 768);
-		};
-
-		checkMobile();
-		window.addEventListener("resize", checkMobile);
-		return () => window.removeEventListener("resize", checkMobile);
-	}, []);
-
 	const getGridTemplateColumns = () => {
 		if (compactMode) {
-			return "5.5rem 2.2rem 3.5rem 2.8rem 3.4rem auto"; // Compact layout
+			return "3.8rem 1.8rem 3.3rem 3.0rem 3.6rem auto"; // Compact layout
 		}
 		return carMetrics
-			? "5.5rem 2.2rem 3.5rem 3.4rem 4rem 2.8rem auto 8rem"
-			: "5.5rem 2.2rem 3.5rem 3.4rem 4rem 2.8rem auto";
+			? "3.8rem 1.8rem 3.3rem 3.0rem 3.6rem 1.8rem auto 8rem"
+			: "3.8rem 1.8rem 3.3rem 3.0rem 3.6rem 1.8rem auto";
 	};
+
+	const hasSectorsData = timingDriver.Sectors && timingDriver.Sectors.some(
+		(s) => !!s.Value || !!s.PreviousValue || s.Segments?.some((seg) => seg.Status > 0),
+	);
+	const showBottomRow = compactMode && (hasSectorsData || (carMetrics && carData));
 
 	return (
 		<motion.div
@@ -86,11 +76,11 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 				handleSelectDriver();
 			}}
 			className={clsx(
-				// Compact table style for all devices
-				"flex flex-col gap-0.5 rounded-none p-1 py-1 mb-0 select-none cursor-pointer driver-row",
-				"border-0 border-b border-gray-600/30 w-fit min-w-full",
-				"hover:bg-gray-800/30 shadow-none backdrop-blur-none",
-				compactMode ? "h-auto min-h-[2.25rem]" : "h-auto", // Updated from min-h-[3rem]
+				// Ultra-compact dense table row (~30-32px)
+				"flex flex-col gap-0 rounded-none px-1 py-0.5 mb-0 select-none cursor-pointer driver-row",
+				"border-0 border-b border-gray-800/60 w-fit min-w-full",
+				"hover:bg-gray-800/40 shadow-none backdrop-blur-none",
+				compactMode ? "h-auto min-h-[1.75rem]" : "h-auto",
 				{
 					"opacity-50": timingDriver.KnockedOut || timingDriver.Retired || timingDriver.Stopped,
 					"bg-sky-800/20 border-sky-600/30": favoriteDriver,
@@ -102,25 +92,20 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 		>
 			<div
 				className={clsx(
-					"grid items-center gap-2 driver-grid w-full",
+					"grid items-center gap-1.5 driver-grid w-full",
 					"md:gap-2"
 				)}
 				style={{
 					gridTemplateColumns: getGridTemplateColumns(),
 				}}
 			>
-				<div className="flex items-center gap-1 w-full min-w-full group/card">
-					<DriverTag className="flex-1" short={driver.Tla} teamColor={driver.TeamColour} position={position} />
-					<button
-						onClick={(e) => {
-							e.stopPropagation(); // Prevent row selection
-							onOpenDriverCard();
-						}}
-						className="p-1 ml-1 rounded text-gray-500 hover:bg-white/10 hover:text-white transition-all"
-						title="Abrir Driver Card"
-					>
-						<NotepadText className="w-4 h-4" />
-					</button>
+				<div className="flex items-center w-full min-w-full">
+					<DriverTag
+						short={driver.Tla}
+						teamColor={driver.TeamColour}
+						position={position}
+						onOpenDriverCard={onOpenDriverCard}
+					/>
 				</div>
 				<DriverDRS
 					on={carData ? hasDRS(carData[45]) : false}
@@ -128,27 +113,48 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 					inPit={timingDriver.InPit}
 					pitOut={timingDriver.PitOut}
 				/>
-				<DriverTire stints={appTimingDriver?.Stints} />
-
 				<DriverGap timingDriver={timingDriver} sessionPart={sessionPart} />
+				<DriverTire stints={appTimingDriver?.Stints} />
 				<DriverLapTime last={timingDriver.LastLapTime} best={timingDriver.BestLapTime} hasFastest={hasFastest} />
 				
-				<div className="text-center font-mono text-sm text-white/90 md:text-base">
-					{timingDriver.NumberOfLaps}<span className="text-gray-400 ml-0.5 text-xs">L</span>
+				<div className="text-center font-mono text-xs font-semibold text-white/90">
+					{timingDriver.NumberOfLaps}<span className="text-gray-400 ml-0.5 text-[9px]">L</span>
 				</div>
-				<DriverMiniSectors
-					sectors={timingDriver.Sectors}
-					bestSectors={timingStatsDriver?.BestSectors}
-					className={clsx("max-md:col-span-full max-md:mt-1", compactMode && "col-span-full mt-1 w-full")}
-				/>
 
-				{carMetrics && carData && (
-					<DriverCarMetrics
-						carData={carData}
-						className={clsx("max-md:col-span-full", compactMode && "col-span-full mt-1 w-full")}
-					/>
+				{!compactMode && (
+					<>
+						<DriverMiniSectors
+							sectors={timingDriver.Sectors}
+							bestSectors={timingStatsDriver?.BestSectors}
+							className="shrink-0"
+						/>
+
+						{carMetrics && carData && (
+							<DriverCarMetrics
+								carData={carData}
+								className="shrink-0"
+							/>
+						)}
+					</>
 				)}
 			</div>
+
+			{showBottomRow && (
+				<div className="flex items-center justify-between gap-2 pt-0.5 pb-1 px-1 w-full">
+					<DriverMiniSectors
+						sectors={timingDriver.Sectors}
+						bestSectors={timingStatsDriver?.BestSectors}
+						className="gap-2.5"
+					/>
+
+					{carMetrics && carData && (
+						<DriverCarMetrics
+							carData={carData}
+							className="shrink-0 scale-90 origin-right"
+						/>
+					)}
+				</div>
+			)}
 		</motion.div>
 	);
 }

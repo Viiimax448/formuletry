@@ -23,11 +23,11 @@ export default function LeaderBoard() {
     const driversTiming = useDataStore(({ state }) => state?.TimingData);
 
     return (
-        <div className="flex w-full flex-col gap-0 overflow-x-auto overflow-y-hidden pb-4 mb-4">
+        <div className="flex w-full flex-col gap-0 overflow-x-auto overflow-y-hidden pb-2 mb-2">
             {showTableHeader && <TableHeaders compactMode={compactMode} />}
 
             {(!drivers || !driversTiming) &&
-                new Array(20).fill("").map((_, index) => <SkeletonDriver key={`driver.loading.${index}`} compactMode={compactMode} />)}
+                new Array(22).fill("").map((_, index) => <SkeletonDriver key={`driver.loading.${index}`} compactMode={compactMode} />)}
 
             <LayoutGroup key="drivers">
                 {drivers && driversTiming && (
@@ -77,19 +77,19 @@ const TableHeaders = ({ compactMode }: { compactMode: boolean }) => {
 
     return (
         <div
-            className="grid items-center gap-2 p-4 px-6 text-sm font-medium text-gray-300 bg-slate-header rounded-xl mb-3 shadow-md border border-gray-600/30"
+            className="grid items-center gap-1.5 p-1.5 px-2 text-[11px] font-semibold text-gray-400 bg-[#1F2937]/80 rounded-lg mb-1.5 border border-gray-700/40"
             style={{
                 gridTemplateColumns: compactMode
-                    ? "4rem 2.5rem 3.5rem 3rem 3.5rem auto"
+                    ? "3.8rem 1.8rem 3.3rem 3.0rem 3.6rem auto"
                     : carMetrics
-                    ? "4rem 2.5rem 4rem 3.5rem 4rem 3rem auto 8rem"
-                    : "4rem 2.5rem 4rem 3.5rem 4rem 3rem auto",
+                    ? "3.8rem 1.8rem 3.3rem 3.0rem 3.6rem 1.8rem auto 8rem"
+                    : "3.8rem 1.8rem 3.3rem 3.0rem 3.6rem 1.8rem auto",
             }}
         >
-            <p>Position</p>
-            <p>DRS</p>
-            <p>Tire</p>
+            <p>Pos</p>
+            <p>PIT</p>
             <p>Gap</p>
+            <p>Tire</p>
             <p>LapTime</p>
             <p>Laps</p>
             {!compactMode && <p>Sectors</p>}
@@ -101,64 +101,61 @@ const TableHeaders = ({ compactMode }: { compactMode: boolean }) => {
 const SkeletonDriver = ({ compactMode }: { compactMode: boolean }) => {
     const carMetrics = useSettingsStore((state) => state.carMetrics);
 
-    const animateClass = "h-8 animate-pulse rounded-md bg-zinc-800";
+    const animateClass = "h-7 animate-pulse rounded bg-zinc-800";
 
     return (
-        <div
-            className="grid items-center gap-2 p-1.5"
-            style={{
-                gridTemplateColumns: compactMode
-                    ? "4rem 2.5rem 3.5rem 3rem 3.5rem auto"
-                    : carMetrics
-                    ? "4rem 2.5rem 4rem 3.5rem 4rem 3rem auto 8rem"
-                    : "4rem 2.5rem 4rem 3.5rem 4rem 3rem auto",
-            }}
-        >
-            <div className={animateClass} style={{ width: "100%" }} />
-
-            <div className={animateClass} style={{ width: "100%" }} />
-
-            <div className="flex w-full gap-2">
-                <div className={clsx(animateClass, "w-8")} />
-
-                <div className="flex flex-1 flex-col gap-1">
-                    <div className={clsx(animateClass, "h-4!")} />
-                    <div className={clsx(animateClass, "h-3! w-2/3")} />
+        <div className="flex flex-col gap-1 p-1 border-b border-gray-800/60">
+            <div
+                className="grid items-center gap-1.5"
+                style={{
+                    gridTemplateColumns: compactMode
+                        ? "3.8rem 1.8rem 3.3rem 3.0rem 3.6rem auto"
+                        : carMetrics
+                        ? "3.8rem 1.8rem 3.3rem 3.0rem 3.6rem 1.8rem auto 8rem"
+                        : "3.8rem 1.8rem 3.3rem 3.0rem 3.6rem 1.8rem auto",
+                }}
+            >
+                <div className={animateClass} style={{ width: "100%" }} />
+                <div className={animateClass} style={{ width: "100%" }} />
+                <div className="flex w-full flex-col gap-1">
+                    <div className={clsx(animateClass, "h-3.5 w-full")} />
                 </div>
-            </div>
-
-            {new Array(2).fill(null).map((_, index) => (
-                <div className="flex w-full flex-col gap-1" key={`skeleton.${index}`}>
-                    <div className={clsx(animateClass, "h-4!")} />
-                    <div className={clsx(animateClass, "h-3! w-2/3")} />
+                <div className="flex w-full flex-col gap-1">
+                    <div className={clsx(animateClass, "h-3.5 w-full")} />
                 </div>
-            ))}
+                <div className="flex w-full flex-col gap-1">
+                    <div className={clsx(animateClass, "h-3.5 w-full")} />
+                    <div className={clsx(animateClass, "h-2 w-2/3")} />
+                </div>
+                <div className={clsx(animateClass, "h-3.5 w-6 mx-auto")} />
 
-            <div className={animateClass} style={{ width: "100%" }} />
+                {!compactMode && (
+                    <div className="flex w-full gap-1">
+                        {new Array(3).fill(null).map((_, index) => (
+                            <div className="flex w-full flex-col gap-1" key={`skeleton.sector.${index}`}>
+                                <div className={clsx(animateClass, "h-3.5 w-full")} />
+                                <div className={clsx(animateClass, "h-2 w-2/3")} />
+                            </div>
+                        ))}
+                    </div>
+                )}
 
-            <div className="flex w-full flex-col gap-1">
-                <div className={clsx(animateClass, "h-3! w-4/5")} />
-                <div className={clsx(animateClass, "h-4!")} />
-            </div>
-
-            {!compactMode && (
-                <div className="flex w-full gap-1">
-                    {new Array(3).fill(null).map((_, index) => (
-                        <div className="flex w-full flex-col gap-1" key={`skeleton.sector.${index}`}>
-                            <div className={clsx(animateClass, "h-4!")} />
-                            <div className={clsx(animateClass, "h-3! w-2/3")} />
+                {carMetrics && !compactMode && (
+                    <div className="flex w-full gap-2">
+                        <div className={clsx(animateClass, "w-8")} />
+                        <div className="flex flex-1 flex-col gap-1">
+                            <div className={clsx(animateClass, "h-3 w-full")} />
                         </div>
-                    ))}
-                </div>
-            )}
+                    </div>
+                )}
+            </div>
 
-            {carMetrics && !compactMode && (
-                <div className="flex w-full gap-2">
-                    <div className={clsx(animateClass, "w-8")} />
-
-                    <div className="flex flex-1 flex-col gap-1">
-                        <div className={clsx(animateClass, "h-1/2!")} />
-                        <div className={clsx(animateClass, "h-1/2!")} />
+            {compactMode && (
+                <div className="flex items-center gap-2 pl-1 py-0.5">
+                    <div className="flex gap-2">
+                        {new Array(3).fill(null).map((_, index) => (
+                            <div className="h-3 w-12 animate-pulse rounded bg-zinc-800" key={`skeleton.compact.sector.${index}`} />
+                        ))}
                     </div>
                 </div>
             )}
