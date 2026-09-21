@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 
 import { useDataEngine } from '@/hooks/useDataEngine';
 import { useWakeLock } from '@/hooks/useWakeLock';
@@ -11,9 +11,7 @@ import { useSocket } from '@/hooks/useSocket';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useDataStore } from '@/stores/useDataStore';
 
-import SessionInfo from '@/components/SessionInfo';
-import WeatherInfo from '@/components/WeatherInfo';
-import TrackInfo from '@/components/TrackInfo';
+import DesktopHeader from '@/components/dashboard/DesktopHeader';
 import MobileHeader from '@/components/dashboard/MobileHeader';
 
 type Props = {
@@ -35,7 +33,7 @@ export default function DashboardLayout({ children }: Props) {
 	return (
 		<div className="flex w-full bg-[#111827] p-2 md:min-h-screen">
 			<motion.div layout="size" className="flex w-full flex-1 flex-col gap-2">
-				<DesktopStaticBar show={!syncing || ended} />
+				{(!syncing || ended) && <DesktopHeader />}
 				{(!syncing || ended) && <MobileHeader />}
 
 				<div
@@ -58,41 +56,6 @@ export default function DashboardLayout({ children }: Props) {
 					<p>Or make your delay smaller.</p>
 				</div>
 			</motion.div>
-		</div>
-	);
-}
-
-function MobileDynamicBar() {
-	return (
-		<div className="flex flex-col divide-y divide-zinc-800 border-b border-zinc-800 md:hidden">
-			<div className="p-2">
-				<SessionInfo />
-			</div>
-			<div className="p-2">
-				<WeatherInfo />
-			</div>
-		</div>
-	);
-}
-
-function MobileStaticBar({ show }: { show: boolean }) {
-	return (
-		<div className="flex w-full items-center justify-end overflow-hidden border-b border-zinc-800 p-2 md:hidden">
-			{show && <TrackInfo />}
-		</div>
-	);
-}
-
-function DesktopStaticBar({ show }: { show: boolean }) {
-	return (
-		<div className="hidden w-full flex-row justify-between overflow-hidden rounded-lg bg-[#111827] border border-gray-600/30 p-4 shadow-lg md:flex">
-			<div className="flex items-center gap-2">
-				<SessionInfo />
-			</div>
-
-			<div className="hidden md:items-center lg:flex">{show && <WeatherInfo />}</div>
-
-			<div className="flex justify-end">{show && <TrackInfo />}</div>
 		</div>
 	);
 }

@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { motion } from "motion/react";
 import { useDemoDataEngine } from "@/hooks/useDemoDataEngine";
 
 import LeaderBoard from "@/components/dashboard/LeaderBoard";
@@ -10,9 +8,8 @@ import TeamRadios from "@/components/dashboard/TeamRadios";
 import TrackViolations from "@/components/dashboard/TrackViolations";
 import Map from "@/components/dashboard/Map";
 import DashboardSupportWidget from "@/components/dashboard/DashboardSupportWidget";
-import SessionInfo from "@/components/SessionInfo";
-import WeatherInfo from "@/components/WeatherInfo";
-import TrackInfo from "@/components/TrackInfo";
+import LiveWeatherButton from "@/components/dashboard/LiveWeatherButton";
+import DesktopHeader from "@/components/dashboard/DesktopHeader";
 import MobileHeader from "@/components/dashboard/MobileHeader";
 
 export default function DemoPage() {
@@ -21,20 +18,10 @@ export default function DemoPage() {
 
 	return (
 		<div className="flex min-h-screen w-full flex-col bg-[#111827] p-2 md:p-4 gap-3 text-white">
-			{/* Top Bar Desktop */}
-			<div className="hidden w-full flex-row justify-between overflow-hidden rounded-lg bg-[#111827] border border-gray-600/30 p-4 shadow-lg md:flex items-center">
-				<div className="flex items-center gap-2">
-					<SessionInfo />
-				</div>
-				<div className="hidden md:items-center lg:flex">
-					<WeatherInfo />
-				</div>
-				<div className="flex justify-end">
-					<TrackInfo />
-				</div>
-			</div>
+			{/* Top Bar Desktop (Adapted Broadcast HUD) */}
+			<DesktopHeader />
 
-			{/* Top Bar Mobile (Compact F1 Broadcast HUD - Opción 2) */}
+			{/* Top Bar Mobile (Compact F1 Broadcast HUD) */}
 			<MobileHeader />
 
 			{/* Main Grid: Leaderboard + Map */}
@@ -46,19 +33,7 @@ export default function DemoPage() {
 
 					{/* Live Weather button inside LeaderBoard block */}
 					<div className="mt-2 w-full">
-						<Link
-							href="/weather?from=demo"
-							prefetch={false}
-							className="flex w-full items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-gray-200 hover:bg-white/10 hover:border-cyan-400/40 transition-colors duration-200"
-						>
-							<svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-							</svg>
-							<div className="flex flex-col leading-tight">
-								<span className="font-medium">Live Weather</span>
-								<span className="text-[10px] text-gray-400">Radar &amp; forecast</span>
-							</div>
-						</Link>
+						<LiveWeatherButton from="demo" />
 					</div>
 					<DashboardSupportWidget />
 				</div>
@@ -69,19 +44,16 @@ export default function DemoPage() {
 			</div>
 
 			{/* Secondary Panels: Race Control, Team Radio, Track Violations */}
-			<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-				<div className="h-[30rem] overflow-y-auto rounded-xl bg-[#1F2937] border border-white/10 p-6 shadow-lg">
-					<h2 className="text-lg font-semibold text-white mb-4">Race Control</h2>
+			<div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+				<div className="flex h-[32rem] flex-col rounded-lg bg-[#111827] border border-gray-600/30 p-4 shadow-lg overflow-hidden">
 					<RaceControl />
 				</div>
 
-				<div className="h-[30rem] overflow-y-auto rounded-xl bg-[#1F2937] border border-white/10 p-6 shadow-lg">
-					<h2 className="text-lg font-semibold text-white mb-4">Team Radio</h2>
+				<div className="flex h-[32rem] flex-col rounded-lg bg-[#111827] border border-gray-600/30 p-4 shadow-lg overflow-hidden">
 					<TeamRadios />
 				</div>
 
-				<div className="h-[30rem] overflow-y-auto rounded-xl bg-[#1F2937] border border-white/10 p-6 shadow-lg">
-					<h2 className="text-lg font-semibold text-white mb-4">Track Violations</h2>
+				<div className="flex h-[32rem] flex-col rounded-lg bg-[#111827] border border-gray-600/30 p-4 shadow-lg overflow-hidden">
 					<TrackViolations />
 				</div>
 			</div>
