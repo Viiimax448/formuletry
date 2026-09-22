@@ -20,49 +20,67 @@ export default function DriverMiniSectors({ sectors = [], bestSectors, className
 
 	const hasAnyData = sectors.some(
 		(s) => !!s.Value || !!s.PreviousValue || s.Segments?.some((seg) => seg.Status > 0),
-	);
+	) || (bestSectors && bestSectors.some((bs) => !!bs?.Value));
 
 	if (!hasAnyData) {
 		return null;
 	}
 
 	return (
-		<div className={clsx("flex items-center gap-1", className)}>
+		<div className={clsx("flex items-center gap-2", className)}>
 			{sectors.map((sector, i) => {
 				const hasSectorValue = !!sector.Value || !!sector.PreviousValue;
-				const bestSectorValue = bestSectors && bestSectors[i]?.Value ? bestSectors[i].Value : null;
+				const bestSector = bestSectors && bestSectors[i];
+				const bestSectorValue = bestSector?.Value;
+				const isBestSectorOverallFastest = bestSector?.Position === 1;
 				const displayValue = sector.Value || sector.PreviousValue;
 
-				// Si este sector individual no tiene ningún dato ni segmentos activos, no mostrar nada
+				// Si este sector individual no tiene ningún dato ni segmentos activos ni mejor sector, no mostrar nada
 				const hasSegmentData = sector.Segments?.some((seg) => seg.Status > 0);
-				if (!hasSectorValue && !hasSegmentData) {
+				if (!hasSectorValue && !hasSegmentData && !bestSectorValue) {
 					return null;
 				}
 
 				return (
 					<div key={`sector.${i}`} className="flex flex-col justify-center gap-0.5 whitespace-nowrap">
 						{showMiniSectors && sector.Segments && sector.Segments.length > 0 && (
-							<div className="flex flex-row gap-0.5 mb-0.5">
+							<div className="flex flex-row gap-0.5 w-full mb-0.5">
 								{sector.Segments.map((segment, j) => (
 									<MiniSector status={segment.Status} key={`sector.mini.${j}`} />
 								))}
 							</div>
 						)}
 
-						{displayValue && (
-							<p
-								className={clsx(
-									"text-[9.5px] leading-none font-bold font-mono tabular-nums",
-									{
-										"text-violet-400!": sector.OverallFastest,
-										"text-emerald-400!": sector.PersonalFastest,
-										"text-zinc-400": !sector.Value,
-									},
-								)}
-							>
-								{displayValue}
-							</p>
-						)}
+						<div className="flex items-baseline gap-1">
+							{displayValue && (
+								<p
+									className={clsx(
+										"text-[11px] leading-none font-bold font-mono tabular-nums",
+										{
+											"text-violet-400!": sector.OverallFastest,
+											"text-emerald-400!": sector.PersonalFastest,
+											"text-zinc-400": !sector.Value,
+										},
+									)}
+								>
+									{displayValue}
+								</p>
+							)}
+
+							{showBestSectors && bestSectorValue && (
+								<p
+									className={clsx(
+										"text-[9.5px] leading-none font-mono tabular-nums",
+										{
+											"text-violet-400!": isBestSectorOverallFastest,
+											"text-zinc-400": !isBestSectorOverallFastest,
+										},
+									)}
+								>
+									{bestSectorValue}
+								</p>
+							)}
+						</div>
 					</div>
 				);
 			})}
@@ -73,7 +91,7 @@ export default function DriverMiniSectors({ sectors = [], bestSectors, className
 function MiniSector({ status }: { status: number }) {
 	return (
 		<div
-			className={clsx("w-1.5 h-1 rounded-[1px]", {
+			className={clsx("flex-1 h-1.5 min-w-[3px] rounded-[1px]", {
 				"bg-amber-400": status === 2048 || status === 2052,
 				"bg-emerald-500": status === 2049,
 				"bg-violet-600": status === 2051,

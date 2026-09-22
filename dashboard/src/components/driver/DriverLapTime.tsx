@@ -23,7 +23,7 @@ export default function DriverLapTime({ last, best, hasFastest }: Props) {
 		<div className="place-self-start flex flex-col justify-center">
 			<p
 				className={clsx(
-					"text-[10.5px] leading-none font-bold font-mono tabular-nums",
+					"text-xs leading-none font-bold font-mono tabular-nums",
 					{
 						"text-violet-400!": last.OverallFastest,
 						"text-emerald-400!": last.PersonalFastest,
@@ -35,7 +35,7 @@ export default function DriverLapTime({ last, best, hasFastest }: Props) {
 			</p>
 			<p
 				className={clsx(
-					"text-[8.5px] leading-none text-zinc-400 font-mono tabular-nums mt-0.5",
+					"text-[9.5px] leading-none text-zinc-400 font-mono tabular-nums mt-0.5",
 					{
 						"text-violet-400!": hasFastest,
 						"text-zinc-500!": !best.Value,

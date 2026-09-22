@@ -91,7 +91,7 @@ export default function DriverTag({ position, teamColor, short, className, onOpe
 		>
 			{position && (
 				<div 
-					className="flex items-center justify-center w-5 h-5 rounded-l font-mono font-bold text-[10px] shrink-0"
+					className="flex items-center justify-center w-6 h-6 rounded-l font-mono font-bold text-[11.5px] shrink-0"
 					style={{ 
 						backgroundColor: posBgColor, 
 						color: posTextColor,
@@ -101,17 +101,17 @@ export default function DriverTag({ position, teamColor, short, className, onOpe
 				</div>
 			)}
 			<div 
-				className="flex items-center gap-1 px-1.5 py-0.5 rounded-r h-5 transition-colors group-hover/tag:brightness-125"
+				className="flex items-center gap-1 px-1.5 py-0.5 rounded-r h-6 transition-colors group-hover/tag:brightness-125"
 				style={{ 
 					backgroundColor: nameBgColor, 
 					color: nameTextColor,
 				}}
 			>
-				<p className="font-mono text-[10.5px] font-bold leading-none tracking-tight">
+				<p className="font-mono text-xs font-bold leading-none tracking-tight">
 					{short}
 				</p>
 				<BarChart2 
-					className="w-2.5 h-2.5 transition-opacity" 
+					className="w-3 h-3 transition-opacity" 
 					style={{ opacity: nameTextColor === "#ffffff" ? 0.7 : 0.85 }}
 				/>
 			</div>
