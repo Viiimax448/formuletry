@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { utc, duration } from "moment";
 import { Settings } from "lucide-react";
 import clsx from "clsx";
@@ -55,6 +55,16 @@ const ClearIcon = () => (
 
 export default function DesktopHeader() {
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+	const [isScrolled, setIsScrolled] = useState(false);
+
+	useEffect(() => {
+		const handleScroll = () => {
+			setIsScrolled(window.scrollY > 40);
+		};
+
+		window.addEventListener("scroll", handleScroll, { passive: true });
+		return () => window.removeEventListener("scroll", handleScroll);
+	}, []);
 
 	const clock = useDataStore((state) => state.state?.ExtrapolatedClock);
 	const session = useDataStore((state) => state.state?.SessionInfo);
@@ -102,13 +112,69 @@ export default function DesktopHeader() {
 	const windDirection = weather?.WindDirection ? getWindDirection(parseInt(weather.WindDirection)) : "";
 	const isRaining = weather?.Rainfall === "1";
 
+	// Vista compactada sticky al hacer scroll
+	if (isScrolled) {
+		return (
+			<div className="sticky top-0 z-40 hidden w-full items-center justify-between rounded-lg bg-[#111827]/95 backdrop-blur-md border border-white/10 px-4 py-2 md:flex gap-4 transition-all duration-200">
+				{/* Izquierda: Contador de Vueltas */}
+				<div className="flex items-center gap-3 shrink-0">
+					<div className="flex items-baseline gap-2">
+						<span className="text-[10px] font-bold font-mono text-gray-400 uppercase tracking-wider">VUELTAS</span>
+						<span className="font-mono text-base font-black text-white tabular-nums leading-none">
+							{lapCount?.CurrentLap ?? 0}
+							<span className="text-xs text-gray-400 font-medium ml-1">/ {lapCount?.TotalLaps ?? 0}</span>
+						</span>
+					</div>
+
+					<span className="text-gray-700">•</span>
+
+					<div className="flex items-center gap-1.5 text-xs font-mono text-gray-300">
+						<span className="text-gray-400 font-medium truncate max-w-[150px]">{session?.Name ?? "Race"}</span>
+						<span className="text-gray-600">•</span>
+						<span className="font-bold text-white tabular-nums">{timeRemaining ?? "--:--:--"}</span>
+					</div>
+				</div>
+
+				{/* Derecha: Estado de Pista & Ajustes */}
+				<div className="flex items-center gap-3 shrink-0">
+					<div className="flex items-center gap-2">
+						<div
+							className="w-2.5 h-2.5 rounded-full"
+							style={{
+								backgroundColor: trackColor,
+								boxShadow: `0 0 8px ${trackColor}60`,
+							}}
+						/>
+						<span
+							className="text-xs font-bold font-mono uppercase tracking-wide"
+							style={{ color: trackColor }}
+						>
+							{currentTrackStatus?.message ?? "ALL CLEAR"}
+						</span>
+					</div>
+
+					<button
+						onClick={() => setIsSettingsOpen(true)}
+						className="p-1 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+						title="Ajustes"
+					>
+						<Settings className="w-3.5 h-3.5" />
+					</button>
+				</div>
+
+				{isSettingsOpen && <SettingsModal onClose={() => setIsSettingsOpen(false)} />}
+			</div>
+		);
+	}
+
+	// Vista completa normal en la parte superior
 	return (
-		<div className="hidden w-full items-center justify-between overflow-hidden rounded-lg bg-[#111827] border border-gray-600/30 px-4 py-2.5 shadow-lg md:flex gap-4">
+		<div className="sticky top-0 z-40 hidden w-full items-center justify-between overflow-hidden rounded-lg bg-[#111827] border border-white/10 px-4 py-2.5 md:flex gap-4 transition-all duration-200">
 			{/* Left: Country Flag + Meeting Name + Session & Clock */}
 			<div className="flex items-center gap-3 shrink-0 min-w-0">
 				<Flag
 					countryCode={session?.Meeting.Country.Code}
-					className="h-8 w-12 rounded shadow-sm border border-neutral-700/50 shrink-0"
+					className="h-8 w-12 rounded border border-neutral-700/50 shrink-0"
 				/>
 				<div className="flex flex-col justify-center min-w-0">
 					<h1 className="truncate text-xs font-semibold text-gray-200">
@@ -127,7 +193,7 @@ export default function DesktopHeader() {
 				</div>
 			</div>
 
-			{/* Center: Weather Telemetry Strip (Matching Mobile single-line design) */}
+			{/* Center: Weather Telemetry Strip */}
 			<div className="hidden lg:flex items-center gap-2.5 bg-white/[0.03] border border-white/5 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap">
 				{/* Track Temp */}
 				<div className="flex items-center gap-1.5">
