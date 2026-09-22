@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { utc, duration } from "moment";
 import { Settings } from "lucide-react";
 
@@ -54,16 +54,6 @@ const ClearIcon = () => (
 
 export default function MobileHeader() {
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-	const [isScrolled, setIsScrolled] = useState(false);
-
-	useEffect(() => {
-		const handleScroll = () => {
-			setIsScrolled(window.scrollY > 30);
-		};
-
-		window.addEventListener("scroll", handleScroll, { passive: true });
-		return () => window.removeEventListener("scroll", handleScroll);
-	}, []);
 
 	const clock = useDataStore((state) => state.state?.ExtrapolatedClock);
 	const session = useDataStore((state) => state.state?.SessionInfo);
@@ -109,65 +99,14 @@ export default function MobileHeader() {
 	const windSpeed = weather ? parseFloat(weather.WindSpeed) : null;
 	const isRaining = weather?.Rainfall === "1";
 
-	// Vista compactada sticky al hacer scroll
-	if (isScrolled) {
-		return (
-			<div className="sticky top-0 z-40 flex w-full items-center justify-between rounded-lg bg-[#111827]/95 backdrop-blur-md border border-white/10 px-3 py-2 md:hidden transition-all duration-200">
-				{/* Izquierda: Contador de Vueltas & Reloj */}
-				<div className="flex items-center gap-2 min-w-0">
-					<div className="flex items-baseline gap-1.5">
-						<span className="text-[10px] font-bold font-mono text-gray-400 uppercase tracking-wider">VUELTAS</span>
-						<span className="font-mono text-sm font-black text-white tabular-nums leading-none">
-							{lapCount?.CurrentLap ?? 0}
-							<span className="text-[11px] text-gray-400 font-medium ml-0.5">/{lapCount?.TotalLaps ?? 0}</span>
-						</span>
-					</div>
-					<span className="text-gray-700">•</span>
-					<span className="font-mono text-xs font-bold text-white tabular-nums">
-						{timeRemaining ?? "--:--:--"}
-					</span>
-				</div>
-
-				{/* Derecha: Estado de Pista & Ajustes */}
-				<div className="flex items-center gap-2 shrink-0">
-					<div className="flex items-center gap-1.5">
-						<div
-							className="w-2 h-2 rounded-full"
-							style={{
-								backgroundColor: trackColor,
-								boxShadow: `0 0 6px ${trackColor}60`,
-							}}
-						/>
-						<span
-							className="text-[11px] font-bold font-mono uppercase tracking-wide truncate max-w-[130px]"
-							style={{ color: trackColor }}
-						>
-							{currentTrackStatus?.message ?? "ALL CLEAR"}
-						</span>
-					</div>
-
-					<button
-						onClick={() => setIsSettingsOpen(true)}
-						className="p-1 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
-						title="Ajustes"
-					>
-						<Settings className="w-3.5 h-3.5" />
-					</button>
-				</div>
-
-				{isSettingsOpen && <SettingsModal onClose={() => setIsSettingsOpen(false)} />}
-			</div>
-		);
-	}
-
 	return (
-		<div className="sticky top-0 z-40 flex w-full flex-col gap-2.5 pt-2 pb-2 px-1 bg-[#111827] border-b border-white/5 md:hidden">
+		<div className="flex w-full flex-col gap-2.5 pt-2.5 pb-2 px-1 md:hidden">
 			{/* Fila 1: Sesión + Reloj (Izquierda) & Vueltas (Derecha) */}
 			<div className="flex items-center justify-between gap-2 border-b border-gray-800 pb-1.5">
 				<div className="flex items-center gap-2.5 min-w-0">
 					<Flag
 						countryCode={session?.Meeting.Country.Code}
-						className="h-7 w-11 rounded border border-neutral-700/50 shrink-0"
+						className="h-7 w-11 rounded shadow-sm border border-neutral-700/50 shrink-0"
 					/>
 					<div className="flex flex-col justify-center min-w-0">
 						<h1 className="truncate text-xs font-semibold text-gray-200">
