@@ -77,21 +77,21 @@ const TableHeaders = ({ compactMode }: { compactMode: boolean }) => {
 
     return (
         <div
-            className="grid items-center gap-1.5 p-1.5 px-2 text-xs font-semibold text-gray-400 bg-[#1F2937]/80 rounded-lg mb-1.5 border border-gray-700/40"
+            className="grid items-center gap-1.5 p-1.5 px-1.5 text-xs font-semibold text-gray-400 bg-[#1F2937]/80 rounded-lg mb-1.5 border border-gray-700/40"
             style={{
                 gridTemplateColumns: compactMode
-                    ? "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem auto"
+                    ? "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem"
                     : carMetrics
-                    ? "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto 9rem"
-                    : "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto",
+                    ? "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem auto 10.5rem"
+                    : "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem auto",
             }}
         >
             <p>Pos</p>
-            <p>PIT</p>
+            <p className="text-center">PIT</p>
             <p>Gap</p>
             <p>Tire</p>
             <p>LapTime</p>
-            <p>Laps</p>
+            <p className="text-center">Laps</p>
             {!compactMode && <p>Sectors</p>}
             {carMetrics && !compactMode && <p>Car Metrics</p>}
         </div>
@@ -109,10 +109,10 @@ const SkeletonDriver = ({ compactMode }: { compactMode: boolean }) => {
                 className="grid items-center gap-1.5"
                 style={{
                     gridTemplateColumns: compactMode
-                        ? "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem auto"
+                        ? "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem"
                         : carMetrics
-                        ? "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto 9rem"
-                        : "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto",
+                        ? "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem auto 10.5rem"
+                        : "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem auto",
                 }}
             >
                 <div className={animateClass} style={{ width: "100%" }} />

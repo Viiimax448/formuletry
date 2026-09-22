@@ -57,11 +57,11 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 
 	const getGridTemplateColumns = () => {
 		if (compactMode) {
-			return "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem auto"; // Compact layout
+			return "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem"; // Compact layout (6 columns)
 		}
 		return carMetrics
-			? "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto 9rem"
-			: "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto";
+			? "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem auto 10.5rem"
+			: "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem auto";
 	};
 
 	const hasSectorsData = timingDriver.Sectors && timingDriver.Sectors.some(
@@ -77,7 +77,7 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 			}}
 			className={clsx(
 				// Ultra-compact dense table row (~30-32px)
-				"flex flex-col gap-0 rounded-none px-1 py-0.5 mb-0 select-none cursor-pointer driver-row",
+				"flex flex-col gap-0 rounded-none px-1.5 py-0.5 mb-0 select-none cursor-pointer driver-row",
 				"border-0 border-b border-gray-800/60 w-fit min-w-full",
 				"hover:bg-gray-800/40 shadow-none backdrop-blur-none",
 				compactMode ? "h-auto min-h-[1.75rem]" : "h-auto",
@@ -91,10 +91,7 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 			)}
 		>
 			<div
-				className={clsx(
-					"grid items-center gap-1.5 driver-grid w-full",
-					"md:gap-2"
-				)}
+				className="grid items-center gap-1.5 driver-grid w-full"
 				style={{
 					gridTemplateColumns: getGridTemplateColumns(),
 				}}

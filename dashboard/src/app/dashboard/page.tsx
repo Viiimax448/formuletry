@@ -10,7 +10,7 @@ import LiveWeatherButton from "@/components/dashboard/LiveWeatherButton";
 
 export default function Page() {
 	return (
-		<div className="flex w-full flex-col gap-2 bg-[#111827] p-4">
+		<div className="flex w-full flex-col gap-2 bg-[#111827] p-0">
 			<div className="flex w-full flex-col gap-2 lg:flex-row lg:items-start">
 				<div className="w-full lg:w-auto lg:flex-shrink-0">
 					<div className="overflow-x-auto md:overflow-x-visible">
