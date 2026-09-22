@@ -44,7 +44,7 @@ export default function DriverMiniSectors({ sectors = [], bestSectors, className
 				return (
 					<div key={`sector.${i}`} className="flex flex-col justify-center gap-0.5 whitespace-nowrap">
 						{showMiniSectors && sector.Segments && sector.Segments.length > 0 && (
-							<div className="flex flex-row gap-0.5 w-full mb-0.5">
+							<div className="flex flex-row gap-[1.5px] w-full mb-0.5 items-center">
 								{sector.Segments.map((segment, j) => (
 									<MiniSector status={segment.Status} key={`sector.mini.${j}`} />
 								))}
@@ -91,7 +91,7 @@ export default function DriverMiniSectors({ sectors = [], bestSectors, className
 function MiniSector({ status }: { status: number }) {
 	return (
 		<div
-			className={clsx("flex-1 h-2 min-w-[3px] rounded-[1px]", {
+			className={clsx("flex-1 h-1 min-w-[2.5px] rounded-full transition-colors duration-150", {
 				"bg-amber-400": status === 2048 || status === 2052,
 				"bg-emerald-500": status === 2049,
 				"bg-violet-600": status === 2051,

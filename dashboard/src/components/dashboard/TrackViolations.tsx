@@ -2,8 +2,7 @@
 
 import { useMemo } from "react";
 import { AnimatePresence } from "motion/react";
-import { ShieldCheck, ShieldAlert, AlertTriangle } from "lucide-react";
-import clsx from "clsx";
+import { ShieldCheck, AlertCircle } from "lucide-react";
 
 import type { Driver } from "@/types/state.type";
 import { useDataStore } from "@/stores/useDataStore";
@@ -27,7 +26,6 @@ const sortViolations = (driverA: Driver, driverB: Driver, violations: Violations
 export default function TrackViolations() {
 	const messages = useDataStore((state) => state.state?.RaceControlMessages);
 	const drivers = useDataStore((state) => state.state?.DriverList);
-	const driversTiming = useDataStore((state) => state.state?.TimingData);
 
 	const trackLimits: Violations = useMemo(() => {
 		if (!messages?.Messages) return {};
@@ -52,12 +50,10 @@ export default function TrackViolations() {
 	}, [drivers, trackLimits]);
 
 	const totalViolations = Object.values(trackLimits).reduce((sum, v) => sum + v, 0);
-	const penalizedDriversCount = violationDrivers.filter((d) => (trackLimits[d.RacingNumber] ?? 0) >= 4).length;
-	const atRiskDriversCount = violationDrivers.filter((d) => (trackLimits[d.RacingNumber] ?? 0) === 3).length;
 
 	return (
 		<div className="flex h-full w-full flex-col">
-			{/* Panel Header Styled like Top Header */}
+			{/* Panel Header */}
 			<div className="flex flex-col gap-2 pb-3 border-b border-gray-800/80 mb-3">
 				<div className="flex items-center justify-between">
 					{/* Title + Count */}
@@ -71,15 +67,10 @@ export default function TrackViolations() {
 					</div>
 
 					{/* Status Pill Badge */}
-					{penalizedDriversCount > 0 ? (
-						<div className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-red-500/60 text-red-400 text-[10px] font-mono font-semibold">
-							<ShieldAlert className="w-3 h-3 text-red-400" />
-							<span>{penalizedDriversCount} Penalizado{penalizedDriversCount > 1 ? "s" : ""}</span>
-						</div>
-					) : atRiskDriversCount > 0 ? (
+					{violationDrivers.length > 0 ? (
 						<div className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-500/60 text-amber-400 text-[10px] font-mono font-semibold">
-							<AlertTriangle className="w-3 h-3 text-amber-400" />
-							<span>{atRiskDriversCount} En Riesgo</span>
+							<AlertCircle className="w-3 h-3 text-amber-400" />
+							<span>{violationDrivers.length} Piloto{violationDrivers.length > 1 ? "s" : ""}</span>
 						</div>
 					) : (
 						<div className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-emerald-500/60 text-emerald-400 text-[10px] font-mono font-semibold">
@@ -101,7 +92,7 @@ export default function TrackViolations() {
 							Pista Limpia
 						</p>
 						<p className="text-[11px] text-gray-400 mt-1 max-w-[220px]">
-							Todos los pilotos se encuentran dentro de los límites de pista reglamentarios.
+							No hay avisos de límites de pista registrados en la sesión.
 						</p>
 					</div>
 				) : (
@@ -110,7 +101,6 @@ export default function TrackViolations() {
 							<DriverViolations
 								key={`violation.driver.${driver.RacingNumber}`}
 								driver={driver}
-								driversTiming={driversTiming ?? undefined}
 								driverViolations={trackLimits[driver.RacingNumber] ?? 0}
 							/>
 						))}

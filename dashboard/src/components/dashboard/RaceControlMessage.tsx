@@ -2,13 +2,13 @@
 
 import { motion } from "motion/react";
 import { utc } from "moment";
-import Image from "next/image";
 import clsx from "clsx";
 
 import type { Message, Driver } from "@/types/state.type";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { useDataStore } from "@/stores/useDataStore";
 import { toTrackTime } from "@/lib/toTrackTime";
+import { getCustomTeamColor, getContrastColor } from "@/lib/teamColors";
 
 type Props = {
 	msg: Message;
@@ -74,10 +74,11 @@ export function RaceControlMessage({ msg, gmtOffset }: Props) {
 				},
 			)}
 		>
-			<div className="flex items-start justify-between gap-2">
+			<div className="flex items-center justify-between gap-3">
+				{/* Columna Izquierda: Información de carrera y texto */}
 				<div className="flex-1 min-w-0">
-					{/* Top Header Row: Lap + Times + Driver Tag */}
-					<div className="mb-1 flex flex-wrap items-center gap-1.5 text-[11px] font-mono">
+					{/* Fila Superior: Vuelta y Horarios */}
+					<div className="mb-1 flex items-center gap-1.5 text-[11px] font-mono">
 						{msg.Lap !== undefined && msg.Lap !== null && (
 							<span className="rounded bg-white/5 px-1.5 py-0.2 text-[9px] font-bold text-gray-300 border border-white/10 tracking-wider">
 								VTA {msg.Lap}
@@ -91,40 +92,147 @@ export function RaceControlMessage({ msg, gmtOffset }: Props) {
 						<time className="text-gray-500 text-[10px]" dateTime={trackTime} title="Hora de pista">
 							{trackTime}
 						</time>
-
-						{/* Driver Chip if car is found */}
-						{driver && (
-							<div className="ml-auto flex items-center gap-1">
-								<span
-									className="rounded px-1.5 py-0.2 text-[9px] font-bold text-white shadow-sm flex items-center gap-0.5"
-									style={{ backgroundColor: `#${driver.TeamColour}` }}
-								>
-									<span>#{driver.RacingNumber}</span>
-									<span>{driver.Tla}</span>
-								</span>
-							</div>
-						)}
 					</div>
 
-					{/* Message Content */}
+					{/* Contenido del Mensaje */}
 					<p className="font-sans text-xs leading-snug text-gray-200 font-medium">
 						{msg.Message}
 					</p>
 				</div>
 
-				{/* Flag SVG badge if flag present */}
-				{msg.Flag && msg.Flag !== "CLEAR" && (
-					<div className="flex flex-col items-center shrink-0 pt-0.5">
-						<Image
-							src={`/flags/${msg.Flag.toLowerCase().replaceAll(" ", "-")}-flag.svg`}
-							alt={msg.Flag}
-							width={18}
-							height={18}
-							className="rounded border border-white/10"
-						/>
+				{/* Columna Derecha: Bloque de Piloto Vertical y/o Bandera Rectangular 3:2 */}
+				{(driver || (msg.Flag && msg.Flag !== "CLEAR")) && (
+					<div className="flex flex-col items-center justify-center gap-1.5 shrink-0">
+						{driver && <DriverVerticalBlock driver={driver} />}
+						{msg.Flag && msg.Flag !== "CLEAR" && <PureRaceFlag flag={msg.Flag} />}
 					</div>
 				)}
 			</div>
 		</motion.li>
+	);
+}
+
+/**
+ * Bloque Vertical Monocolor Sólido de Escudería (Opción B)
+ * - Todo el bloque tiene el color oficial de la escudería
+ * - Número arriba en grande y 3 letras TLA abajo con contraste inteligente
+ * - Micro-divisor sutil integrado
+ */
+function DriverVerticalBlock({ driver }: { driver: Driver }) {
+	const teamColor = getCustomTeamColor(driver.TeamColour, driver.Tla);
+	const textColor = getContrastColor(teamColor);
+	const isDarkText = textColor === "#090d16";
+	const dividerBorder = isDarkText ? "border-black/15" : "border-white/20";
+	const outerBorder = isDarkText ? "border-black/20" : "border-white/20";
+
+	return (
+		<div
+			className={clsx(
+				"flex flex-col items-stretch justify-center rounded-md overflow-hidden border shadow-sm min-w-[34px] w-[34px] select-none",
+				outerBorder,
+			)}
+			style={{ backgroundColor: teamColor, color: textColor }}
+			title={`${driver.BroadcastName} (#${driver.RacingNumber})`}
+		>
+			{/* Número Arriba */}
+			<div className="flex items-center justify-center pt-0.5 pb-0.2 px-0.5 leading-none font-mono font-black text-xs tabular-nums">
+				{driver.RacingNumber}
+			</div>
+
+			{/* Micro Divisor y 3 Letras TLA Abajo */}
+			<div className={clsx("flex items-center justify-center pt-0.2 pb-0.5 px-0.5 border-t", dividerBorder)}>
+				<span className="font-mono text-[9px] font-bold tracking-wider leading-none opacity-90">
+					{driver.Tla}
+				</span>
+			</div>
+		</div>
+	);
+}
+
+/**
+ * Banderas Rectangulares Puras 3:2 Oficiales sin mástil (Opción B)
+ * - Proporción limpia 3:2 (27px × 18px)
+ * - Bordes suavemente redondeados (rounded-[3px])
+ * - Acabado vectorial nítido de alta precisión
+ */
+function PureRaceFlag({ flag }: { flag: string }) {
+	const normalized = flag.toUpperCase().trim();
+
+	if (normalized === "CLEAR") return null;
+
+	return (
+		<div className="flex items-center justify-center shrink-0" title={`Bandera ${normalized}`}>
+			{normalized === "YELLOW" && (
+				<div
+					title="Bandera Amarilla"
+					className="w-[27px] h-[18px] rounded-[3px] bg-yellow-400 border border-yellow-200/50 shadow-sm shadow-yellow-500/20"
+				/>
+			)}
+
+			{normalized === "DOUBLE YELLOW" && (
+				<div
+					title="Doble Bandera Amarilla"
+					className="w-[27px] h-[18px] rounded-[3px] overflow-hidden border border-yellow-200/50 flex gap-[1.5px] p-[1px] bg-black/60 shadow-sm shadow-yellow-500/20"
+				>
+					<div className="flex-1 bg-yellow-400 rounded-[1px]" />
+					<div className="flex-1 bg-yellow-400 rounded-[1px]" />
+				</div>
+			)}
+
+			{normalized === "RED" && (
+				<div
+					title="Bandera Roja"
+					className="w-[27px] h-[18px] rounded-[3px] bg-red-600 border border-red-400/50 shadow-sm shadow-red-500/25"
+				/>
+			)}
+
+			{normalized === "GREEN" && (
+				<div
+					title="Bandera Verde"
+					className="w-[27px] h-[18px] rounded-[3px] bg-emerald-500 border border-emerald-300/50 shadow-sm shadow-emerald-500/20"
+				/>
+			)}
+
+			{normalized === "BLUE" && (
+				<div
+					title="Bandera Azul"
+					className="w-[27px] h-[18px] rounded-[3px] bg-blue-500 border border-blue-300/50 shadow-sm shadow-blue-500/20"
+				/>
+			)}
+
+			{normalized === "BLACK AND WHITE" && (
+				<div
+					title="Bandera Blanca y Negra (Límites de pista / Advertencia)"
+					className="w-[27px] h-[18px] rounded-[3px] overflow-hidden border border-white/40 shadow-sm relative bg-white"
+				>
+					<svg className="w-full h-full block" viewBox="0 0 27 18" preserveAspectRatio="none">
+						<polygon points="0,18 27,0 27,18" fill="#18181b" />
+					</svg>
+				</div>
+			)}
+
+			{normalized === "CHEQUERED" && (
+				<div
+					title="Bandera a Cuadros"
+					className="w-[27px] h-[18px] rounded-[3px] overflow-hidden border border-white/40 shadow-sm bg-white"
+				>
+					<svg className="w-full h-full block" viewBox="0 0 24 16" preserveAspectRatio="none">
+						<rect width="24" height="16" fill="#ffffff" />
+						<rect x="0" y="0" width="4" height="4" fill="#18181b" />
+						<rect x="8" y="0" width="4" height="4" fill="#18181b" />
+						<rect x="16" y="0" width="4" height="4" fill="#18181b" />
+						<rect x="4" y="4" width="4" height="4" fill="#18181b" />
+						<rect x="12" y="4" width="4" height="4" fill="#18181b" />
+						<rect x="20" y="4" width="4" height="4" fill="#18181b" />
+						<rect x="0" y="8" width="4" height="4" fill="#18181b" />
+						<rect x="8" y="8" width="4" height="4" fill="#18181b" />
+						<rect x="16" y="8" width="4" height="4" fill="#18181b" />
+						<rect x="4" y="12" width="4" height="4" fill="#18181b" />
+						<rect x="12" y="12" width="4" height="4" fill="#18181b" />
+						<rect x="20" y="12" width="4" height="4" fill="#18181b" />
+					</svg>
+				</div>
+			)}
+		</div>
 	);
 }
