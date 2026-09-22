@@ -80,10 +80,10 @@ const TableHeaders = ({ compactMode }: { compactMode: boolean }) => {
             className="grid items-center gap-1.5 p-1.5 px-2 text-xs font-semibold text-gray-400 bg-[#1F2937]/80 rounded-lg mb-1.5 border border-gray-700/40"
             style={{
                 gridTemplateColumns: compactMode
-                    ? "4.4rem 2.0rem 3.6rem 3.4rem 4.2rem auto"
+                    ? "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem auto"
                     : carMetrics
-                    ? "4.4rem 2.0rem 3.6rem 3.4rem 4.2rem 2.0rem auto 8.5rem"
-                    : "4.4rem 2.0rem 3.6rem 3.4rem 4.2rem 2.0rem auto",
+                    ? "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto 9rem"
+                    : "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto",
             }}
         >
             <p>Pos</p>
@@ -109,10 +109,10 @@ const SkeletonDriver = ({ compactMode }: { compactMode: boolean }) => {
                 className="grid items-center gap-1.5"
                 style={{
                     gridTemplateColumns: compactMode
-                        ? "4.4rem 2.0rem 3.6rem 3.4rem 4.2rem auto"
+                        ? "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem auto"
                         : carMetrics
-                        ? "4.4rem 2.0rem 3.6rem 3.4rem 4.2rem 2.0rem auto 8.5rem"
-                        : "4.4rem 2.0rem 3.6rem 3.4rem 4.2rem 2.0rem auto",
+                        ? "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto 9rem"
+                        : "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto",
                 }}
             >
                 <div className={animateClass} style={{ width: "100%" }} />

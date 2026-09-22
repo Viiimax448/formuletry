@@ -57,11 +57,11 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 
 	const getGridTemplateColumns = () => {
 		if (compactMode) {
-			return "4.4rem 2.0rem 3.6rem 3.4rem 4.2rem auto"; // Compact layout
+			return "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem auto"; // Compact layout
 		}
 		return carMetrics
-			? "4.4rem 2.0rem 3.6rem 3.4rem 4.2rem 2.0rem auto 8.5rem"
-			: "4.4rem 2.0rem 3.6rem 3.4rem 4.2rem 2.0rem auto";
+			? "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto 9rem"
+			: "4.8rem 2.2rem 3.8rem 3.6rem 4.5rem 2.2rem auto";
 	};
 
 	const hasSectorsData = timingDriver.Sectors && timingDriver.Sectors.some(
@@ -117,8 +117,8 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 				<DriverTire stints={appTimingDriver?.Stints} />
 				<DriverLapTime last={timingDriver.LastLapTime} best={timingDriver.BestLapTime} hasFastest={hasFastest} />
 				
-				<div className="text-center font-mono text-[13px] font-semibold text-white/90">
-					{timingDriver.NumberOfLaps}<span className="text-gray-400 ml-0.5 text-[10px]">L</span>
+				<div className="text-center font-mono text-sm font-semibold text-white/90">
+					{timingDriver.NumberOfLaps}<span className="text-gray-400 ml-0.5 text-[10.5px]">L</span>
 				</div>
 
 				{!compactMode && (

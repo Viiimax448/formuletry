@@ -55,7 +55,7 @@ export default function DriverMiniSectors({ sectors = [], bestSectors, className
 							{displayValue && (
 								<p
 									className={clsx(
-										"text-[11px] leading-none font-bold font-mono tabular-nums",
+										"text-xs leading-none font-bold font-mono tabular-nums",
 										{
 											"text-violet-400!": sector.OverallFastest,
 											"text-emerald-400!": sector.PersonalFastest,
@@ -70,7 +70,7 @@ export default function DriverMiniSectors({ sectors = [], bestSectors, className
 							{showBestSectors && bestSectorValue && (
 								<p
 									className={clsx(
-										"text-[9.5px] leading-none font-mono tabular-nums",
+										"text-[10px] leading-none font-mono tabular-nums",
 										{
 											"text-violet-400!": isBestSectorOverallFastest,
 											"text-zinc-400": !isBestSectorOverallFastest,
@@ -91,7 +91,7 @@ export default function DriverMiniSectors({ sectors = [], bestSectors, className
 function MiniSector({ status }: { status: number }) {
 	return (
 		<div
-			className={clsx("flex-1 h-1.5 min-w-[3px] rounded-[1px]", {
+			className={clsx("flex-1 h-2 min-w-[3px] rounded-[1px]", {
 				"bg-amber-400": status === 2048 || status === 2052,
 				"bg-emerald-500": status === 2049,
 				"bg-violet-600": status === 2051,

@@ -19,13 +19,13 @@ export default function DriverCarMetrics({ carData, className }: Props) {
 
 	return (
 		<div className={clsx("flex items-center gap-2 place-self-start", className)}>
-			<p className="flex h-6.5 w-6.5 items-center justify-center font-mono text-xs font-bold bg-zinc-800/80 rounded border border-zinc-700/50">{carData[3]}</p>
+			<p className="flex h-7 w-7 items-center justify-center font-mono text-xs font-bold bg-zinc-800/80 rounded border border-zinc-700/50">{carData[3]}</p>
 
 			<div className="text-right">
-				<p className="font-mono text-xs font-bold leading-none">
+				<p className="font-mono text-[13px] font-bold leading-none">
 					{speedUnit === "metric" ? carData[2] : convertKmhToMph(carData[2])}
 				</p>
-				<p className="text-[9px] leading-none text-zinc-500 mt-0.5">{speedUnit === "metric" ? "km/h" : "mph"}</p>
+				<p className="text-[10px] leading-none text-zinc-500 mt-0.5">{speedUnit === "metric" ? "km/h" : "mph"}</p>
 			</div>
 
 			<div className="flex flex-col">

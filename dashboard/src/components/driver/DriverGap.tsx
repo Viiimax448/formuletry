@@ -26,7 +26,7 @@ export default function DriverGap({ timingDriver, sessionPart }: Props) {
 		<div className="place-self-start flex flex-col justify-center">
 			<p
 				className={clsx(
-					"text-xs leading-none font-bold font-mono tabular-nums",
+					"text-[13px] leading-none font-bold font-mono tabular-nums",
 					{
 						"text-emerald-400": catching,
 						"text-zinc-500": !gapToFront,
@@ -36,7 +36,7 @@ export default function DriverGap({ timingDriver, sessionPart }: Props) {
 				{!!gapToFront ? gapToFront : "-- ---"}
 			</p>
 
-			<p className="text-[9.5px] leading-none text-zinc-400 font-mono tabular-nums mt-0.5">
+			<p className="text-[10px] leading-none text-zinc-400 font-mono tabular-nums mt-0.5">
 				{gapToLeader ? gapToLeader : "-- -- ---"}
 			</p>
 		</div>
