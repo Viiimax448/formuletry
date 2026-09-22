@@ -116,31 +116,30 @@ export function RaceControlMessage({ msg, gmtOffset }: Props) {
  * Bloque Vertical Monocolor Sólido de Escudería (Opción B)
  * - Todo el bloque tiene el color oficial de la escudería
  * - Número arriba en grande y 3 letras TLA abajo con contraste inteligente
- * - Micro-divisor sutil integrado
+ * - Sin línea divisoria para un bloque limpio y continuo
  */
 function DriverVerticalBlock({ driver }: { driver: Driver }) {
 	const teamColor = getCustomTeamColor(driver.TeamColour, driver.Tla);
 	const textColor = getContrastColor(teamColor);
 	const isDarkText = textColor === "#090d16";
-	const dividerBorder = isDarkText ? "border-black/15" : "border-white/20";
 	const outerBorder = isDarkText ? "border-black/20" : "border-white/20";
 
 	return (
 		<div
 			className={clsx(
-				"flex flex-col items-stretch justify-center rounded-md overflow-hidden border shadow-sm min-w-[34px] w-[34px] select-none",
+				"flex flex-col items-stretch justify-center rounded-md overflow-hidden border shadow-sm min-w-[34px] w-[34px] select-none py-0.5",
 				outerBorder,
 			)}
 			style={{ backgroundColor: teamColor, color: textColor }}
 			title={`${driver.BroadcastName} (#${driver.RacingNumber})`}
 		>
 			{/* Número Arriba */}
-			<div className="flex items-center justify-center pt-0.5 pb-0.2 px-0.5 leading-none font-mono font-black text-xs tabular-nums">
+			<div className="flex items-center justify-center px-0.5 leading-none font-mono font-black text-xs tabular-nums">
 				{driver.RacingNumber}
 			</div>
 
-			{/* Micro Divisor y 3 Letras TLA Abajo */}
-			<div className={clsx("flex items-center justify-center pt-0.2 pb-0.5 px-0.5 border-t", dividerBorder)}>
+			{/* 3 Letras TLA Abajo */}
+			<div className="flex items-center justify-center px-0.5 pt-0.5">
 				<span className="font-mono text-[9px] font-bold tracking-wider leading-none opacity-90">
 					{driver.Tla}
 				</span>

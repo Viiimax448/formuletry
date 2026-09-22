@@ -8,6 +8,7 @@ import clsx from "clsx";
 
 import type { Driver, RadioCapture } from "@/types/state.type";
 import { toTrackTime } from "@/lib/toTrackTime";
+import { getCustomTeamColor, getContrastColor } from "@/lib/teamColors";
 
 type Props = {
 	driver?: Driver;
@@ -32,7 +33,9 @@ export default function RadioMessage({ driver, capture, basePath, gmtOffset }: P
 	const [progress, setProgress] = useState<number>(0);
 	const [playbackRate, setPlaybackRate] = useState<number>(1);
 
-	const teamColor = driver?.TeamColour ? `#${driver.TeamColour}` : "#3B82F6";
+	const teamColor = getCustomTeamColor(driver?.TeamColour ?? "3B82F6", driver?.Tla);
+	const badgeTextColor = getContrastColor(teamColor);
+	const isDarkBadge = badgeTextColor === "#090d16";
 
 	const loadMeta = () => {
 		if (!audioRef.current) return;
@@ -133,10 +136,13 @@ export default function RadioMessage({ driver, capture, basePath, gmtOffset }: P
 
 			{/* Main Audio Player Controls */}
 			<div className="flex items-center gap-2.5">
-				{/* Driver Badge */}
+				{/* Driver Badge with auto contrast */}
 				<div
-					className="rounded px-2 py-0.5 text-[10px] font-mono font-bold text-white shadow-sm flex items-center gap-0.5 shrink-0"
-					style={{ backgroundColor: teamColor }}
+					className={clsx(
+						"rounded px-2 py-0.5 text-[10px] font-mono font-bold shadow-sm flex items-center gap-1 shrink-0 border",
+						isDarkBadge ? "border-black/20" : "border-white/20",
+					)}
+					style={{ backgroundColor: teamColor, color: badgeTextColor }}
 				>
 					<span>#{driver?.RacingNumber ?? capture.RacingNumber}</span>
 					{driver?.Tla && <span>{driver.Tla}</span>}

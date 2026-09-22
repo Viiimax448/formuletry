@@ -15,7 +15,6 @@ export default function DriverViolations({ driver, driverViolations }: Props) {
 	const teamColor = getCustomTeamColor(driver.TeamColour, driver.Tla);
 	const textColor = getContrastColor(teamColor);
 	const isDarkText = textColor === "#090d16";
-	const dividerBorder = isDarkText ? "border-black/15" : "border-white/20";
 	const outerBorder = isDarkText ? "border-black/20" : "border-white/20";
 
 	return (
@@ -33,16 +32,16 @@ export default function DriverViolations({ driver, driverViolations }: Props) {
 					{/* Driver Block (matching Option B) */}
 					<div
 						className={clsx(
-							"flex flex-col items-stretch justify-center rounded-md overflow-hidden border shadow-sm min-w-[34px] w-[34px] shrink-0 select-none",
+							"flex flex-col items-stretch justify-center rounded-md overflow-hidden border shadow-sm min-w-[34px] w-[34px] shrink-0 select-none py-0.5",
 							outerBorder,
 						)}
 						style={{ backgroundColor: teamColor, color: textColor }}
 						title={`${driver.BroadcastName} (#${driver.RacingNumber})`}
 					>
-						<div className="flex items-center justify-center pt-0.5 pb-0.2 px-0.5 leading-none font-mono font-black text-xs tabular-nums">
+						<div className="flex items-center justify-center px-0.5 leading-none font-mono font-black text-xs tabular-nums">
 							{driver.RacingNumber}
 						</div>
-						<div className={clsx("flex items-center justify-center pt-0.2 pb-0.5 px-0.5 border-t", dividerBorder)}>
+						<div className="flex items-center justify-center px-0.5 pt-0.5">
 							<span className="font-mono text-[9px] font-bold tracking-wider leading-none opacity-90">
 								{driver.Tla}
 							</span>
@@ -51,7 +50,7 @@ export default function DriverViolations({ driver, driverViolations }: Props) {
 
 					{/* Driver Name & Team */}
 					<div className="flex flex-col min-w-0">
-						<span className="truncate text-xs font-semibold text-gray-200 font-sans">
+						<span className="truncate text-xs font-semibold text-white/95 font-sans">
 							{driver.BroadcastName ?? driver.FullName}
 						</span>
 						<span className="text-[10px] font-medium text-gray-400 truncate">

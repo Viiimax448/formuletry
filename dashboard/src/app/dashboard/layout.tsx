@@ -13,6 +13,7 @@ import { useDataStore } from '@/stores/useDataStore';
 
 import DesktopHeader from '@/components/dashboard/DesktopHeader';
 import MobileHeader from '@/components/dashboard/MobileHeader';
+import TrackEventNotification from '@/components/dashboard/TrackEventNotification';
 
 type Props = {
 	children: ReactNode;
@@ -35,6 +36,7 @@ export default function DashboardLayout({ children }: Props) {
 			<motion.div layout="size" className="flex w-full flex-1 flex-col gap-2">
 				{(!syncing || ended) && <DesktopHeader />}
 				{(!syncing || ended) && <MobileHeader />}
+				<TrackEventNotification />
 
 				<div
 					className={
