@@ -4,6 +4,9 @@ import clsx from "clsx";
 import { useDataStore } from "@/stores/useDataStore";
 import DriverMiniSectors from "../driver/DriverMiniSectors";
 import DriverTag from "../driver/DriverTag";
+import DriverGap from "../driver/DriverGap";
+import DriverTire from "../driver/DriverTire";
+import DriverLapTime from "../driver/DriverLapTime";
 import TireIcon from "../TireIcon";
 import { sortPos } from "@/lib/sorting";
 import { getCustomTeamColor } from "@/lib/teamColors";
@@ -25,6 +28,8 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 	const allDrivers = useDataStore((state) => state.state?.DriverList);
 	const allTiming = useDataStore((state) => state.state?.TimingData?.Lines);
 	const sessionPart = useDataStore((state) => state.state?.TimingData?.SessionPart);
+	const allTimingAppData = useDataStore((state) => state.state?.TimingAppData?.Lines);
+	const allTimingStats = useDataStore((state) => state.state?.TimingStats?.Lines);
 
 	const teamColor = getCustomTeamColor(driver.TeamColour, driver.Tla);
 
@@ -49,6 +54,7 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 			return {
 				bg: "bg-red-500",
 				badgeText: "text-red-400",
+				textColor: "text-white",
 				name: "SOFT",
 			};
 		}
@@ -56,6 +62,7 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 			return {
 				bg: "bg-yellow-400",
 				badgeText: "text-yellow-400",
+				textColor: "text-black",
 				name: "MEDIUM",
 			};
 		}
@@ -63,6 +70,7 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 			return {
 				bg: "bg-white",
 				badgeText: "text-white",
+				textColor: "text-black",
 				name: "HARD",
 			};
 		}
@@ -70,6 +78,7 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 			return {
 				bg: "bg-emerald-500",
 				badgeText: "text-emerald-400",
+				textColor: "text-black",
 				name: "INTER",
 			};
 		}
@@ -77,12 +86,14 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 			return {
 				bg: "bg-blue-500",
 				badgeText: "text-blue-400",
+				textColor: "text-white",
 				name: "WET",
 			};
 		}
 		return {
 			bg: "bg-gray-600",
 			badgeText: "text-gray-400",
+			textColor: "text-white",
 			name: compound || "N/A",
 		};
 	};
@@ -113,45 +124,89 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 		return "text-white";
 	};
 
-	// 5. Lógica de Gaps
-	const getGapToFront = (line: any) => {
-		if (!line) return "--";
-		const gap =
-			line.IntervalToPositionAhead?.Value ??
-			(line.Stats ? line.Stats[sessionPart ? sessionPart - 1 : 0]?.TimeDifftoPositionAhead : undefined) ??
-			line.TimeDiffToPositionAhead ??
-			"";
-		return gap ? gap : "--";
-	};
-
-	// 6. Pilotos adelante y atrás
-	let driverAhead: Driver | null = null;
-	let driverBehind: Driver | null = null;
+	// 5. Pilotos adelante, actual y atrás para la Batalla en Pista
+	let aheadTiming: TimingDataDriver | null = null;
+	let aheadDriver: Driver | null = null;
+	let aheadAppTiming: any = null;
+	let aheadStats: any = null;
 	let aheadPos: number | undefined = undefined;
+
+	let behindTiming: TimingDataDriver | null = null;
+	let behindDriver: Driver | null = null;
+	let behindAppTiming: any = null;
+	let behindStats: any = null;
 	let behindPos: number | undefined = undefined;
-	let gapAhead = "--";
-	let gapBehind = "--";
 
 	if (allTiming && allDrivers) {
 		const sortedLines = Object.values(allTiming).sort(sortPos);
 		const myIndex = sortedLines.findIndex((l) => String(l.RacingNumber) === driverNumStr);
 
 		if (myIndex > 0) {
-			const aheadLine = sortedLines[myIndex - 1];
-			driverAhead = allDrivers[aheadLine.RacingNumber];
-			aheadPos = Number(aheadLine.Position) || myIndex;
-			gapAhead = getGapToFront(timingDriver);
-		} else if (myIndex === 0) {
-			gapAhead = "LÍDER";
+			aheadTiming = sortedLines[myIndex - 1];
+			aheadDriver = allDrivers[aheadTiming.RacingNumber];
+			aheadPos = Number(aheadTiming.Position) || myIndex;
+			aheadAppTiming = allTimingAppData?.[aheadTiming.RacingNumber];
+			aheadStats = allTimingStats?.[aheadTiming.RacingNumber];
 		}
 
-		if (myIndex < sortedLines.length - 1) {
-			const behindLine = sortedLines[myIndex + 1];
-			driverBehind = allDrivers[behindLine.RacingNumber];
-			behindPos = Number(behindLine.Position) || myIndex + 2;
-			gapBehind = getGapToFront(behindLine);
+		if (myIndex >= 0 && myIndex < sortedLines.length - 1) {
+			behindTiming = sortedLines[myIndex + 1];
+			behindDriver = allDrivers[behindTiming.RacingNumber];
+			behindPos = Number(behindTiming.Position) || myIndex + 2;
+			behindAppTiming = allTimingAppData?.[behindTiming.RacingNumber];
+			behindStats = allTimingStats?.[behindTiming.RacingNumber];
 		}
 	}
+
+	const renderBattleRow = (
+		rowDriver: Driver,
+		rowTiming: TimingDataDriver,
+		rowAppTiming: any,
+		rowStats: any,
+		rowPos?: number,
+		isCurrent?: boolean,
+	) => {
+		const hasFastest = rowStats?.PersonalBestLapTime?.Position == 1;
+
+		return (
+			<div
+				className="grid items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors hover:bg-white/[0.04] border border-white/5 bg-white/[0.015]"
+				style={{
+					gridTemplateColumns: "4.8rem 3.8rem 4rem 4.2rem",
+				}}
+			>
+				{/* 1. Posición y DriverTag */}
+				<div className="flex items-center w-full min-w-full">
+					<DriverTag
+						short={rowDriver.Tla}
+						teamColor={rowDriver.TeamColour}
+						position={rowPos || Number(rowTiming.Position)}
+						showIcon={false}
+						className="scale-[0.80] origin-left"
+					/>
+				</div>
+
+				{/* 2. Gap */}
+				<div className="scale-[0.85] origin-left">
+					<DriverGap timingDriver={rowTiming} sessionPart={sessionPart} />
+				</div>
+
+				{/* 3. Neumático */}
+				<div className="scale-[0.85] origin-left">
+					<DriverTire stints={rowAppTiming?.Stints} />
+				</div>
+
+				{/* 4. Tiempo de Vuelta */}
+				<div className="scale-[0.85] origin-left">
+					<DriverLapTime
+						last={rowTiming.LastLapTime || { Value: "" }}
+						best={rowTiming.BestLapTime || { Value: "" }}
+						hasFastest={hasFastest}
+					/>
+				</div>
+			</div>
+		);
+	};
 
 	return (
 		// Overlay
@@ -331,24 +386,26 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 												style={{ flex: flexValue }}
 												className="flex flex-col gap-0.5 min-w-0"
 											>
-												{/* Texto superior: Compuesto y Vueltas */}
-												<div className="flex items-center justify-between text-[8.5px] sm:text-[9px] font-mono font-semibold px-0.5 leading-none">
-													<span className={clsx("font-bold tracking-wider", style.badgeText)}>
+												{/* Texto superior: Compuesto centrado */}
+												<div className="flex items-center justify-center text-[8.5px] sm:text-[9px] font-mono font-bold px-0.5 leading-none mb-0.5">
+													<span className={clsx("font-bold tracking-wider truncate", style.badgeText)}>
 														{style.name}
-													</span>
-													<span className="tabular-nums text-gray-400 text-[8px] sm:text-[8.5px]">
-														{stint.laps}L {stint.laps > 0 ? `(V${stint.startLap}–${stint.endLap})` : ""}
 													</span>
 												</div>
 
-												{/* Línea del Stint */}
+												{/* Línea del Stint con número de vueltas adentro (completamente redondeada) */}
 												<div
 													className={clsx(
-														"w-full h-2 sm:h-2.5 rounded-full transition-all relative",
+														"w-full h-4 sm:h-4.5 rounded-full flex items-center justify-center font-mono font-black text-[9px] sm:text-[10px] leading-none select-none transition-all shadow-sm",
 														style.bg,
+														style.textColor,
 													)}
-													title={`Stint ${idx + 1}: ${style.name} (${stint.laps} vueltas${stint.isCurrent ? " - Actual" : ""})`}
-												/>
+													title={`Stint ${idx + 1}: ${style.name} (${stint.laps} vueltas${stint.isCurrent ? " - Actual" : ""}${stint.laps > 0 ? ` · V${stint.startLap}–${stint.endLap}` : ""})`}
+												>
+													<span className="truncate px-1">
+														{stint.laps}L
+													</span>
+												</div>
 											</div>
 										);
 									})
@@ -357,17 +414,33 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 								)}
 							</div>
 
-							{/* Indicador inferior de progresión */}
-							<div className="flex items-center justify-between text-[8.5px] font-mono text-gray-400 px-0.5 pt-0.5">
-								<span>Inicio</span>
-								<span>
-									Vuelta actual: <strong className="text-white font-mono font-bold">{cumulativeLaps}</strong>
-								</span>
-							</div>
+							{/* Indicador inferior: Únicamente la vuelta en la que se cambió el neumático */}
+							{stintRanges.length > 1 && (
+								<div className="flex items-center gap-1.5 w-full text-[8.5px] sm:text-[9px] font-mono text-gray-400 px-0.5 pt-0.5">
+									{stintRanges.map((stint, idx) => {
+										const flexValue = Math.max(stint.laps || 1, 1);
+										const isLast = idx === stintRanges.length - 1;
+
+										return (
+											<div
+												key={`stint-laps-${idx}`}
+												style={{ flex: flexValue }}
+												className="flex items-center justify-end min-w-0"
+											>
+												{!isLast && (
+													<span className="text-gray-400 shrink-0 font-medium">
+														{stint.endLap}L
+													</span>
+												)}
+											</div>
+										);
+									})}
+								</div>
+							)}
 						</div>
 					</div>
 
-					{/* Bloque 3: Batalla en Pista (Adelante / Atrás con DriverTags del dashboard) */}
+					{/* Bloque 3: Batalla en Pista (Estilo Dashboard: Adelante, Actual, Detrás) */}
 					<div className="border-t border-white/5 pt-2.5">
 						<div className="flex items-center justify-between mb-1.5">
 							<span className="text-[9px] uppercase font-mono font-bold tracking-wider text-gray-400">
@@ -375,49 +448,29 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 							</span>
 						</div>
 
-						<div className="grid grid-cols-2 gap-2 sm:gap-3 items-center">
-							{/* Adelante */}
-							<div className="flex items-center justify-between min-w-0 pr-1 sm:pr-2">
-								<div className="flex items-center gap-1.5 min-w-0">
-									<ArrowUp className="w-3 h-3 text-emerald-400 shrink-0" />
-									{driverAhead ? (
-										<DriverTag
-											position={aheadPos}
-											teamColor={driverAhead.TeamColour}
-											short={driverAhead.Tla}
-											showIcon={false}
-											className="scale-85 origin-left"
-										/>
-									) : (
-										<span className="text-xs font-mono font-bold text-amber-400">LÍDER</span>
-									)}
-								</div>
+						{/* Tabla con estilo exacto del Dashboard */}
+						<div className="overflow-x-auto no-scrollbar">
+							<div className="min-w-[300px] flex flex-col gap-0.5">
+								{/* Fila 1: Piloto Adelante (si existe) */}
+								{aheadDriver && aheadTiming ? (
+									renderBattleRow(aheadDriver, aheadTiming, aheadAppTiming, aheadStats, aheadPos, false)
+								) : (
+									<div className="flex items-center gap-2 px-2.5 py-1 text-[11px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded">
+										<span>🏆 LÍDER DE CARRERA</span>
+									</div>
+								)}
 
-								<span className={clsx("text-xs sm:text-[13px] font-mono font-bold tabular-nums shrink-0", gapAhead === "LÍDER" ? "text-amber-400 text-xs" : "text-emerald-400")}>
-									{gapAhead}
-								</span>
-							</div>
+								{/* Fila 2: Piloto de la DriverCard (destacado) */}
+								{renderBattleRow(driver, timingDriver, appTimingDriver, timingStatsDriver, currentPos, true)}
 
-							{/* Atrás */}
-							<div className="flex items-center justify-between min-w-0 pl-2 sm:pl-3 border-l border-white/5">
-								<div className="flex items-center gap-1.5 min-w-0">
-									<ArrowDown className="w-3 h-3 text-red-400 shrink-0" />
-									{driverBehind ? (
-										<DriverTag
-											position={behindPos}
-											teamColor={driverBehind.TeamColour}
-											short={driverBehind.Tla}
-											showIcon={false}
-											className="scale-85 origin-left"
-										/>
-									) : (
-										<span className="text-xs font-mono text-gray-500">ÚLTIMO</span>
-									)}
-								</div>
-
-								<span className="text-xs sm:text-[13px] font-mono font-bold tabular-nums text-red-400 shrink-0">
-									{gapBehind}
-								</span>
+								{/* Fila 3: Piloto Detrás (si existe) */}
+								{behindDriver && behindTiming ? (
+									renderBattleRow(behindDriver, behindTiming, behindAppTiming, behindStats, behindPos, false)
+								) : (
+									<div className="flex items-center gap-2 px-2.5 py-1 text-[11px] font-mono font-medium text-gray-500 bg-white/[0.02] border border-white/5 rounded">
+										<span>ÚLTIMA POSICIÓN</span>
+									</div>
+								)}
 							</div>
 						</div>
 					</div>
