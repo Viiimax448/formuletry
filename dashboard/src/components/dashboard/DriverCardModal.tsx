@@ -1,9 +1,10 @@
 import React from "react";
-import { X, Disc, ArrowUp, ArrowDown } from "lucide-react";
+import { X, Disc } from "lucide-react";
 import clsx from "clsx";
 import { useDataStore } from "@/stores/useDataStore";
 import DriverMiniSectors from "../driver/DriverMiniSectors";
 import DriverTag from "../driver/DriverTag";
+import DriverPosDiff from "../driver/DriverPosDiff";
 import DriverGap from "../driver/DriverGap";
 import DriverTire from "../driver/DriverTire";
 import DriverLapTime from "../driver/DriverLapTime";
@@ -172,11 +173,16 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 			<div
 				className="grid items-center gap-1.5 px-1.5 py-0.5 rounded transition-colors hover:bg-white/[0.04] border border-white/5 bg-white/[0.015]"
 				style={{
-					gridTemplateColumns: "4.8rem 3.8rem 4rem 4.2rem",
+					gridTemplateColumns: "5.8rem 3.8rem 4rem 4.2rem",
 				}}
 			>
-				{/* 1. Posición y DriverTag */}
-				<div className="flex items-center w-full min-w-full">
+				{/* 1. Posición y DriverTag con PosDiff */}
+				<div className="flex items-center gap-1 w-full min-w-full">
+					<DriverPosDiff
+						gridPos={rowAppTiming?.GridPos}
+						position={rowPos || Number(rowTiming.Position)}
+						className="scale-90 origin-left"
+					/>
 					<DriverTag
 						short={rowDriver.Tla}
 						teamColor={rowDriver.TeamColour}
@@ -240,22 +246,8 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 									{driver.FirstName} <span className="uppercase">{driver.LastName}</span>
 								</h3>
 
-								{/* Badge de Ganancia / Pérdida de Puestos */}
-								{posDiff !== null && (
-									<span
-										className={clsx(
-											"inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border leading-none shrink-0",
-											posDiff > 0 && "text-emerald-400 bg-emerald-500/15 border-emerald-500/30",
-											posDiff < 0 && "text-red-400 bg-red-500/15 border-red-500/30",
-											posDiff === 0 && "text-gray-400 bg-white/5 border-white/10",
-										)}
-										title={`Largó P${gridPos} · Posición actual P${currentPos}`}
-									>
-										{posDiff > 0 && <ArrowUp className="w-2.5 h-2.5 shrink-0" />}
-										{posDiff < 0 && <ArrowDown className="w-2.5 h-2.5 shrink-0" />}
-										{posDiff > 0 ? `+${posDiff}` : posDiff < 0 ? `${posDiff}` : "="}
-									</span>
-								)}
+								{/* Fluctuación de Puestos: triangulito y número */}
+								<DriverPosDiff gridPos={appTimingDriver?.GridPos} position={currentPos} className="w-auto" />
 							</div>
 
 							<p className="text-[10px] sm:text-[11px] font-mono font-medium text-gray-400 uppercase tracking-wider truncate mt-1">

@@ -9,6 +9,7 @@ import { useSettingsStore } from "@/stores/useSettingsStore";
 import { useDataStore } from "@/stores/useDataStore";
 
 import DriverTag from "./DriverTag";
+import DriverPosDiff from "./DriverPosDiff";
 import DriverDRS from "./DriverDRS";
 import DriverGap from "./DriverGap";
 import DriverTire from "./DriverTire";
@@ -57,11 +58,11 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 
 	const getGridTemplateColumns = () => {
 		if (compactMode) {
-			return "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem"; // Compact layout (6 columns)
+			return "7.4rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem"; // Compact layout (6 columns)
 		}
 		return carMetrics
-			? "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem auto 10.5rem"
-			: "5.8rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem auto";
+			? "7.4rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem auto 10.5rem"
+			: "7.4rem 2.5rem 4.2rem 4.6rem 4.6rem 2.2rem auto";
 	};
 
 	const hasSectorsData = timingDriver.Sectors && timingDriver.Sectors.some(
@@ -96,7 +97,8 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 					gridTemplateColumns: getGridTemplateColumns(),
 				}}
 			>
-				<div className="flex items-center w-full min-w-full">
+				<div className="flex items-center gap-1 w-full min-w-full">
+					<DriverPosDiff gridPos={appTimingDriver?.GridPos} position={position} />
 					<DriverTag
 						short={driver.Tla}
 						teamColor={driver.TeamColour}
