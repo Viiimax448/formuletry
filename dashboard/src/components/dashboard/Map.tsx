@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
+import { Zap } from "lucide-react";
 
 import type { PositionCar, TimingDataDriver } from "@/types/state.type";
 import type { Map, TrackPosition } from "@/types/map.type";
@@ -9,6 +10,8 @@ import { fetchMap } from "@/lib/fetchMap";
 import { useDataStore } from "@/stores/useDataStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { getTrackStatusMessage } from "@/lib/getTrackStatusMessage";
+import { getComparisonColors } from "@/lib/teamColors";
+import { parseTimeToSeconds } from "@/lib/timingComparison";
 import {
 	createSectors,
 	findYellowSectors,
@@ -209,6 +212,90 @@ export default function Map({ filter }: Props) {
 			.sort(prioritizeColoredSectors);
 	}, [trackStatus, sectors, yellowSectors]);
 
+	// Minisector Dominance Comparison when 2 drivers are selected
+	const comparisonData = useMemo(() => {
+		if (favoriteDrivers.length < 2 || !drivers || !timingDrivers || !points || points.length === 0) {
+			return null;
+		}
+
+		const id1 = favoriteDrivers[0];
+		const id2 = favoriteDrivers[1];
+		const d1 = drivers[id1];
+		const d2 = drivers[id2];
+		const t1 = timingDrivers.Lines[id1];
+		const t2 = timingDrivers.Lines[id2];
+
+		if (!d1 || !d2 || !t1 || !t2) return null;
+
+		const { color1, color2, isSameTeam } = getComparisonColors(d1, d2);
+
+		const seg1 = t1.Sectors?.flatMap((s) => s.Segments) || [];
+		const seg2 = t2.Sectors?.flatMap((s) => s.Segments) || [];
+		const totalSegments = Math.max(seg1.length, seg2.length, 12);
+
+		let d1Wins = 0;
+		let d2Wins = 0;
+
+		const segmentSlices: { id: string; d: string; color: string; winner: 1 | 2 | "tie" }[] = [];
+		const pointsPerSlice = points.length / totalSegments;
+
+		for (let i = 0; i < totalSegments; i++) {
+			const startIdx = Math.floor(i * pointsPerSlice);
+			const endIdx = Math.min(Math.floor((i + 1) * pointsPerSlice) + 1, points.length);
+			const slicePoints = points.slice(startIdx, endIdx);
+
+			if (slicePoints.length < 2) continue;
+
+			const s1Status = seg1[i]?.Status || 0;
+			const s2Status = seg2[i]?.Status || 0;
+
+			let winner: 1 | 2 | "tie" = "tie";
+
+			if (s1Status === 2051 && s2Status !== 2051) {
+				winner = 1;
+			} else if (s2Status === 2051 && s1Status !== 2051) {
+				winner = 2;
+			} else if (s1Status === 2049 && s2Status !== 2049) {
+				winner = 1;
+			} else if (s2Status === 2049 && s1Status !== 2049) {
+				winner = 2;
+			} else {
+				// Sector comparison fallback
+				const sectorIdx = Math.min(Math.floor(i / (totalSegments / 3)), 2);
+				const v1 = parseTimeToSeconds(t1.Sectors?.[sectorIdx]?.Value || t1.Sectors?.[sectorIdx]?.PreviousValue);
+				const v2 = parseTimeToSeconds(t2.Sectors?.[sectorIdx]?.Value || t2.Sectors?.[sectorIdx]?.PreviousValue);
+				if (v1 !== null && v2 !== null) {
+					winner = v1 < v2 ? 1 : v2 < v1 ? 2 : "tie";
+				}
+			}
+
+			if (winner === 1) d1Wins++;
+			if (winner === 2) d2Wins++;
+
+			const strokeColor = winner === 1 ? color1 : winner === 2 ? color2 : "#4B5563";
+			const d = `M${slicePoints[0].x},${slicePoints[0].y} ${slicePoints.map((p) => `L${p.x},${p.y}`).join(" ")}`;
+
+			segmentSlices.push({
+				id: `seg.slice.${i}`,
+				d,
+				color: strokeColor,
+				winner,
+			});
+		}
+
+		return {
+			d1,
+			d2,
+			color1,
+			color2,
+			isSameTeam,
+			d1Wins,
+			d2Wins,
+			totalSegments,
+			segmentSlices,
+		};
+	}, [favoriteDrivers, drivers, timingDrivers, points]);
+
 	if (!points || !minX || !minY || !widthX || !widthY) {
 		return (
 			<div className="h-full w-full p-2" style={{ minHeight: "35rem" }}>
@@ -218,38 +305,88 @@ export default function Map({ filter }: Props) {
 	}
 
 	return (
-		<svg
-			viewBox={`${minX} ${minY} ${widthX} ${widthY}`}
-			className="h-full w-full xl:max-h-screen"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<path
-				className="stroke-gray-800"
-				strokeWidth={300}
-				strokeLinejoin="round"
-				fill="transparent"
-				d={`M${points[0].x},${points[0].y} ${points.map((point) => `L${point.x},${point.y}`).join(" ")}`}
-			/>
+		<div className="relative w-full h-full">
+			{/* Floating Minisector Comparison HUD overlay */}
+			{comparisonData && (
+				<div className="absolute top-2 left-2 z-20 flex flex-wrap items-center gap-2 px-3 py-1.5 rounded-xl bg-black/85 backdrop-blur-md border border-neutral-800 text-xs font-mono shadow-xl select-none">
+					<div className="flex items-center gap-1.5 text-cyan-400 font-bold text-[11px] uppercase tracking-wider">
+						<Zap className="w-3.5 h-3.5" />
+						<span>Minisectores:</span>
+					</div>
 
-			{renderedSectors.map((sector) => {
-				const style = sector.pulse
-					? {
-							animation: `${sector.pulse * 100}ms linear infinite pulse`,
-						}
-					: {};
-				return (
-					<path
-						key={`map.sector.${sector.number}`}
-						className={sector.color}
-						strokeWidth={sector.strokeWidth}
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						fill="transparent"
-						d={sector.d}
-						style={style}
-					/>
-				);
-			})}
+					<div className="flex items-center gap-2 text-xs">
+						<div className="flex items-center gap-1.5 font-bold">
+							<span className="w-2.5 h-2.5 rounded-full shadow-xs" style={{ backgroundColor: comparisonData.color1 }} />
+							<span className="text-white">{comparisonData.d1.Tla}</span>
+							<span className="text-neutral-400 text-[11px]">({comparisonData.d1Wins})</span>
+						</div>
+
+						<span className="text-neutral-500 font-sans text-[11px]">vs</span>
+
+						<div className="flex items-center gap-1.5 font-bold">
+							<span className="w-2.5 h-2.5 rounded-full shadow-xs" style={{ backgroundColor: comparisonData.color2 }} />
+							<span className="text-white">{comparisonData.d2.Tla}</span>
+							<span className="text-neutral-400 text-[11px]">({comparisonData.d2Wins})</span>
+						</div>
+
+						{comparisonData.isSameTeam && (
+							<span className="text-[10px] text-neutral-400 bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800 font-sans">
+								{comparisonData.d1.TeamName}
+							</span>
+						)}
+					</div>
+				</div>
+			)}
+
+			<svg
+				viewBox={`${minX} ${minY} ${widthX} ${widthY}`}
+				className="h-full w-full xl:max-h-screen"
+				xmlns="http://www.w3.org/2000/svg"
+			>
+				{/* Dark Base Track */}
+				<path
+					className="stroke-gray-800"
+					strokeWidth={300}
+					strokeLinejoin="round"
+					fill="transparent"
+					d={`M${points[0].x},${points[0].y} ${points.map((point) => `L${point.x},${point.y}`).join(" ")}`}
+				/>
+
+				{/* If 2 drivers selected, render the Minisector Comparison Slices */}
+				{comparisonData && comparisonData.segmentSlices.length > 0 ? (
+					comparisonData.segmentSlices.map((slice) => (
+						<path
+							key={slice.id}
+							stroke={slice.color}
+							strokeWidth={180}
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							fill="transparent"
+							d={slice.d}
+						/>
+					))
+				) : (
+					/* Default Race / Yellow / Track status sectors */
+					renderedSectors.map((sector) => {
+						const style = sector.pulse
+							? {
+									animation: `${sector.pulse * 100}ms linear infinite pulse`,
+								}
+							: {};
+						return (
+							<path
+								key={`map.sector.${sector.number}`}
+								className={sector.color}
+								strokeWidth={sector.strokeWidth}
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								fill="transparent"
+								d={sector.d}
+								style={style}
+							/>
+						);
+					})
+				)}
 
 			{finishLine && (
 				<rect
@@ -291,12 +428,16 @@ export default function Map({ filter }: Props) {
 							// Skip rendering if we can't determine position
 							if (!driverPosition) return null;
 
+							const isCar1 = comparisonData && comparisonData.d1.RacingNumber === driver.RacingNumber;
+							const isCar2 = comparisonData && comparisonData.d2.RacingNumber === driver.RacingNumber;
+							const dotColor = isCar1 ? comparisonData.color1 : isCar2 ? comparisonData.color2 : driver.TeamColour;
+
 							return (
 								<CarDot
 									key={`map.driver.${driver.RacingNumber}`}
 									favoriteDriver={favoriteDrivers.length > 0 ? favoriteDrivers.includes(driver.RacingNumber) : false}
 									name={driver.Tla}
-									color={driver.TeamColour}
+									color={dotColor}
 									pit={pit}
 									hidden={hidden}
 									pos={driverPosition}
@@ -309,6 +450,7 @@ export default function Map({ filter }: Props) {
 				</>
 			)}
 		</svg>
+		</div>
 	);
 }
 
@@ -344,6 +486,7 @@ type CarDotProps = {
 const CarDot = ({ pos, name, color, favoriteDriver, pit, hidden, rotation, centerX, centerY }: CarDotProps) => {
 	const rotatedPos = rotate(pos.X, pos.Y, rotation, centerX, centerY);
 	const transform = [`translateX(${rotatedPos.x}px)`, `translateY(${rotatedPos.y}px)`].join(" ");
+	const fillColor = color ? (color.startsWith("#") ? color : `#${color}`) : undefined;
 
 	return (
 		<g
@@ -351,7 +494,7 @@ const CarDot = ({ pos, name, color, favoriteDriver, pit, hidden, rotation, cente
 			style={{
 				transition: "all 1s linear",
 				transform,
-				...(color && { fill: `#${color}` }),
+				...(fillColor && { fill: fillColor }),
 			}}
 		>
 			<circle id={`map.driver.circle`} r={favoriteDriver ? 300 : 120} />

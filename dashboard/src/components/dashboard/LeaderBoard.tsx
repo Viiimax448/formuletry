@@ -9,6 +9,7 @@ import { sortPos } from "@/lib/sorting";
 
 import Driver from "@/components/driver/Driver";
 import DriverCardModal from "./DriverCardModal";
+import DriverComparison from "./DriverComparison";
 
 export default function LeaderBoard() {
     const [driverCardOpen, setDriverCardModalOpen] = useState<string | null>(null);
@@ -60,6 +61,9 @@ export default function LeaderBoard() {
                     </AnimatePresence>
                 )}
             </LayoutGroup>
+
+            {/* Head-to-Head Driver Comparison Cards */}
+            <DriverComparison />
 
             {driverCardOpen && drivers && driversTiming && drivers[driverCardOpen] && driversTiming.Lines[driverCardOpen] && (
                 <DriverCardModal
