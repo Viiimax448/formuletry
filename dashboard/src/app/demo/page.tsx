@@ -8,7 +8,6 @@ import TeamRadios from "@/components/dashboard/TeamRadios";
 import TrackViolations from "@/components/dashboard/TrackViolations";
 import Map from "@/components/dashboard/Map";
 import DashboardSupportWidget from "@/components/dashboard/DashboardSupportWidget";
-import LiveWeatherButton from "@/components/dashboard/LiveWeatherButton";
 import DesktopHeader from "@/components/dashboard/DesktopHeader";
 import MobileHeader from "@/components/dashboard/MobileHeader";
 import TrackEventNotification from "@/components/dashboard/TrackEventNotification";
@@ -162,14 +161,10 @@ export default function DemoPage() {
 						<LeaderBoard />
 					</div>
 
-					{/* Live Weather button inside LeaderBoard block */}
-					<div className="mt-2 w-full">
-						<LiveWeatherButton from="demo" />
-					</div>
 					<DashboardSupportWidget />
 				</div>
 
-				<div className="flex-1 w-full h-[35rem] lg:h-auto lg:min-h-[35rem]">
+				<div className="flex-1 w-full h-[35rem] lg:h-[42rem] lg:min-h-[35rem] rounded-xl bg-[#0f131d] border border-gray-800/60 p-2 shadow-lg overflow-hidden flex flex-col items-center justify-center">
 					<Map />
 				</div>
 			</div>

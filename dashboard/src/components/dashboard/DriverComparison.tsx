@@ -49,24 +49,27 @@ export default function DriverComparison({ onClose }: Props) {
 				initial={{ opacity: 0, y: 6 }}
 				animate={{ opacity: 1, y: 0 }}
 				exit={{ opacity: 0, y: 6 }}
-				className="flex items-center justify-between gap-2 px-3.5 py-2 mt-2 rounded-xl bg-[#0f131d] border border-gray-800/80 text-xs"
+				className="flex items-center justify-between gap-2 px-3 py-1.5 mt-2 w-[92%] sm:w-full max-w-sm sm:max-w-xl md:max-w-2xl mx-auto rounded-xl bg-[#111827]/95 backdrop-blur-md text-[11px] shadow-lg"
+				style={{
+					border: `1.5px solid ${teamColor}`,
+				}}
 			>
 				<div className="flex items-center gap-2">
-					<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: teamColor }} />
+					<div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: teamColor }} />
 					<span className="text-gray-300">
-						<strong className="text-white font-mono">{singleDriver.FullName}</strong> (1/2 seleccionado).{" "}
-						<span className="text-gray-500">Selecciona otro piloto para comparar.</span>
+						<strong className="text-white font-mono">{singleDriver.FullName}</strong> (1/2).{" "}
+						<span className="text-gray-500">Selecciona otro piloto.</span>
 					</span>
 				</div>
 
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-1.5">
 					{teammate && (
 						<button
 							onClick={() => setFavoriteDrivers([singleDriver.RacingNumber, teammate.RacingNumber])}
-							className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 transition-colors cursor-pointer flex items-center gap-1"
+							className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 transition-colors cursor-pointer flex items-center gap-1"
 						>
-							<Zap className="w-3 h-3 text-sky-400" />
-							<span>vs {teammate.Tla} ({teammate.LastName})</span>
+							<Zap className="w-2.5 h-2.5 text-sky-400" />
+							<span>vs {teammate.Tla}</span>
 						</button>
 					)}
 					<button
@@ -155,33 +158,33 @@ export default function DriverComparison({ onClose }: Props) {
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, y: 8 }}
 			transition={{ duration: 0.2 }}
-			className="w-full mt-2.5"
+			className="w-[90%] sm:w-full max-w-sm sm:max-w-lg md:max-w-xl mx-auto mt-2"
 		>
 			{/* Top Bar: Mode Toggle + Actions */}
-			<div className="flex items-center justify-between gap-2 mb-2 px-0.5">
+			<div className="flex items-center justify-between gap-1.5 mb-1.5 px-0.5">
 				{/* Mode Tabs */}
 				<div className="flex items-center bg-[#0d111a] p-0.5 rounded-lg border border-gray-800/80">
 					<button
 						onClick={() => setMode("last")}
 						className={clsx(
-							"px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-colors cursor-pointer",
+							"px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-mono font-bold transition-colors cursor-pointer",
 							mode === "last"
 								? "bg-sky-500 text-black shadow-xs"
 								: "text-gray-400 hover:text-white"
 						)}
 					>
-						ÚLTIMA VUELTA
+						ÚLTIMA
 					</button>
 					<button
 						onClick={() => setMode("best")}
 						className={clsx(
-							"px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-colors cursor-pointer",
+							"px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-mono font-bold transition-colors cursor-pointer",
 							mode === "best"
 								? "bg-sky-500 text-black shadow-xs"
 								: "text-gray-400 hover:text-white"
 						)}
 					>
-						MEJOR VUELTA (PB)
+						MEJOR (PB)
 					</button>
 				</div>
 
@@ -193,15 +196,14 @@ export default function DriverComparison({ onClose }: Props) {
 						<span className="text-neutral-500">vs</span>
 						<span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color2 }} />
 						<span>{driver2.Tla}</span>
-						<span className="text-neutral-500 font-sans">({driver1.TeamName})</span>
 					</div>
 				)}
 
 				{/* Action Buttons */}
-				<div className="flex items-center gap-1.5">
+				<div className="flex items-center gap-1">
 					<button
 						onClick={handleSwap}
-						className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono text-gray-300 hover:text-white bg-[#0f131d] border border-gray-800 hover:border-gray-700 transition-colors cursor-pointer"
+						className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-mono text-gray-300 hover:text-white bg-[#0f131d] border border-gray-800 hover:border-gray-700 transition-colors cursor-pointer"
 						title="Intercambiar pilotos"
 					>
 						<ArrowLeftRight className="w-3 h-3 text-sky-400" />
@@ -209,7 +211,7 @@ export default function DriverComparison({ onClose }: Props) {
 					</button>
 					<button
 						onClick={handleClear}
-						className="p-1.5 rounded-md text-gray-400 hover:text-red-400 bg-[#0f131d] border border-gray-800 hover:border-gray-700 transition-colors cursor-pointer"
+						className="p-1 rounded-md text-gray-400 hover:text-red-400 bg-[#0f131d] border border-gray-800 hover:border-gray-700 transition-colors cursor-pointer"
 						title="Cerrar comparativa"
 					>
 						<X className="w-3.5 h-3.5" />
@@ -218,7 +220,7 @@ export default function DriverComparison({ onClose }: Props) {
 			</div>
 
 			{/* 2 Comparison Cards Side-by-Side */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
 				<CleanDriverCard
 					driver={driver1}
 					timing={timing1}
@@ -291,27 +293,26 @@ function CleanDriverCard({
 	const lapCount = timing.NumberOfLaps || timing.Line || 0;
 
 	return (
-		<div className="relative flex flex-col rounded-xl bg-[#0f131d] border border-[#1c2232] overflow-hidden p-3 select-none justify-between gap-2.5 shadow-sm">
-			{/* Left Team Color Accent Bar */}
-			<div
-				className="absolute left-0 top-0 bottom-0 w-[4.5px]"
-				style={{ backgroundColor: teamColor }}
-			/>
-
+		<div
+			className="relative flex flex-col rounded-xl bg-[#111827]/95 backdrop-blur-md overflow-hidden p-2.5 sm:p-3 select-none justify-between gap-1.5 shadow-xl"
+			style={{
+				border: `1.5px solid ${teamColor}`,
+			}}
+		>
 			{/* 1. HEADER: Driver Info (Left) + Lap Time & Delta (Right) */}
-			<div className="flex items-center justify-between gap-2 pl-1.5">
+			<div className="flex items-center justify-between gap-1.5 pb-1.5 border-b border-gray-800/60">
 				{/* Driver Identity */}
 				<div className="min-w-0">
 					<div className="flex items-center gap-1.5">
 						<div
-							className="w-2.5 h-2.5 rounded-full shrink-0"
+							className="w-2 h-2 rounded-full shrink-0"
 							style={{ backgroundColor: teamColor }}
 						/>
-						<h4 className="font-extrabold text-sm sm:text-[14.5px] text-white tracking-wide uppercase truncate font-sans">
+						<h4 className="font-extrabold text-[12.5px] sm:text-[13.5px] text-white tracking-wide uppercase truncate font-sans">
 							{driver.FullName || driver.BroadcastName}
 						</h4>
 					</div>
-					<div className="flex items-center gap-1.5 mt-0.5 text-[11px] font-mono text-gray-400 pl-4">
+					<div className="flex items-center gap-1.5 mt-0.5 text-[9.5px] sm:text-[10px] font-mono text-gray-400 pl-3.5">
 						<span>L{lapCount}</span>
 						<span>•</span>
 						<span>P{timing.Position || "-"}</span>
@@ -322,14 +323,14 @@ function CleanDriverCard({
 				<div className="text-right shrink-0">
 					<span
 						className={clsx(
-							"font-mono font-black text-base sm:text-lg tabular-nums tracking-tight",
+							"font-mono font-black text-sm sm:text-base tabular-nums tracking-tight",
 							isFasterOverall ? "text-emerald-400" : "text-white"
 						)}
 					>
 						{lapTime}
 					</span>
 					{lapDelta !== null && (
-						<span className="text-[10.5px] font-mono font-bold text-red-400 block -mt-0.5">
+						<span className="text-[9px] sm:text-[9.5px] font-mono font-bold text-red-400 block -mt-0.5">
 							+{lapDelta.toFixed(3)}s
 						</span>
 					)}
@@ -337,7 +338,7 @@ function CleanDriverCard({
 			</div>
 
 			{/* 2. SECTORS & MINISECTORS: S and Time Centered Directly Above Corresponding Sector Segments */}
-			<div className="grid grid-cols-3 gap-2 pl-1.5">
+			<div className="grid grid-cols-3 gap-1.5 py-0.5">
 				{[0, 1, 2].map((idx) => {
 					const sectorLabel = `S${idx + 1}`;
 					const sectorVal = sectorValues[idx] || "--";
@@ -347,12 +348,12 @@ function CleanDriverCard({
 					const sectorSegments = timing.Sectors?.[idx]?.Segments || [];
 
 					return (
-						<div key={sectorLabel} className="flex flex-col items-center gap-1.5">
-							{/* Centered Sector Pill with Subtle Dark Background */}
-							<div className="w-full flex items-center justify-center gap-1.5 py-1 px-2 rounded-md bg-[#131824] border border-[#1d2436] text-xs font-mono">
-								<span className="text-gray-400 font-semibold text-[11px]">{sectorLabel}</span>
+						<div key={sectorLabel} className="flex flex-col items-center gap-0.5">
+							{/* Centered Sector Label & Time (Clean typography, no card background) */}
+							<div className="flex items-center justify-center gap-1 text-[11px] font-mono py-0.5">
+								<span className="text-gray-400 font-semibold text-[10px]">{sectorLabel}</span>
 								<span
-									className={clsx("font-bold tabular-nums text-xs sm:text-[13px]", {
+									className={clsx("font-bold tabular-nums text-[11px] sm:text-xs", {
 										"text-violet-400": isOverallFastest,
 										"text-emerald-400": isWinner && !isOverallFastest,
 										"text-white": !isWinner && !isOverallFastest && sectorVal !== "--",
@@ -363,35 +364,30 @@ function CleanDriverCard({
 								</span>
 							</div>
 
-							{/* Minisector segments for THIS sector directly underneath */}
-							<div className="flex items-center gap-[2px] w-full justify-center">
+							{/* Minisector segments for THIS sector directly underneath (Dashboard style) */}
+							<div className="flex items-center gap-[1px] w-full justify-center">
 								{sectorSegments.length > 0 ? (
 									sectorSegments.map((seg, segIdx) => (
 										<div
 											key={`seg.${idx}.${segIdx}`}
 											className={clsx(
-												"flex-1 h-3 sm:h-3.5 min-w-[3px] rounded-full transition-colors duration-150",
+												"flex-1 h-[3px] min-w-[2px] rounded-full transition-colors duration-150",
 												{
-													// Yellow/Orange (standard / no improvement)
-													"bg-[#f59e0b]": seg.Status === 2048 || seg.Status === 2052,
-													// Green (personal best)
-													"bg-[#10b981]": seg.Status === 2049,
-													// Purple (overall fastest in session)
-													"bg-[#8b5cf6]": seg.Status === 2051,
-													// Blue
-													"bg-[#3b82f6]": seg.Status === 2064,
-													// Unset / Inactive
-													"bg-[#1c2230]": seg.Status === 0 || !seg.Status,
+													"bg-amber-400": seg.Status === 2048 || seg.Status === 2052,
+													"bg-emerald-500": seg.Status === 2049,
+													"bg-violet-600": seg.Status === 2051,
+													"bg-blue-500": seg.Status === 2064,
+													"bg-zinc-800": seg.Status === 0 || !seg.Status,
 												}
 											)}
 										/>
 									))
 								) : (
 									<div
-										className={clsx("w-full h-2.5 rounded-full", {
+										className={clsx("w-full h-[3px] rounded-full", {
 											"bg-violet-600": isOverallFastest,
 											"bg-emerald-500": isWinner,
-											"bg-amber-500": !isWinner && !isOverallFastest && sectorVal !== "--",
+											"bg-amber-400": !isWinner && !isOverallFastest && sectorVal !== "--",
 											"bg-zinc-800": sectorVal === "--",
 										})}
 									/>
@@ -403,12 +399,12 @@ function CleanDriverCard({
 			</div>
 
 			{/* 3. FOOTER: Tire Stint & Speed Trap */}
-			<div className="flex items-center justify-between pt-2 border-t border-gray-800/60 pl-1.5 text-[11px] font-mono text-gray-400">
+			<div className="flex items-center justify-between pt-1.5 border-t border-gray-800/60 text-[9px] sm:text-[9.5px] font-mono text-gray-400">
 				{/* Tire compound & stint age */}
-				<div className="flex items-center gap-1.5">
+				<div className="flex items-center gap-1">
 					{currentStint?.Compound ? (
-						<div className="flex items-center gap-1.5">
-							<TireIcon compound={currentStint.Compound} size={14} />
+						<div className="flex items-center gap-1">
+							<TireIcon compound={currentStint.Compound} size={11} />
 							<span className="text-gray-200 font-semibold uppercase">
 								{currentStint.Compound} <span className="text-gray-400">({currentStint.TotalLaps ?? 0}L)</span>
 							</span>
@@ -421,8 +417,8 @@ function CleanDriverCard({
 				{/* Speed Trap */}
 				{speedTrap ? (
 					<div className="flex items-center gap-1">
-						<Gauge className="w-3.5 h-3.5 text-gray-500" />
-						<span className="text-gray-400">Speed Trap:</span>
+						<Gauge className="w-3 h-3 text-gray-500" />
+						<span className="text-gray-400">ST:</span>
 						<span className={clsx("font-bold", isFasterSpeed ? "text-emerald-400" : "text-white")}>
 							{speedTrap} km/h
 						</span>

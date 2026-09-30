@@ -6,7 +6,6 @@ import TeamRadios from "@/components/dashboard/TeamRadios";
 import TrackViolations from "@/components/dashboard/TrackViolations";
 import Map from "@/components/dashboard/Map";
 import DashboardSupportWidget from "@/components/dashboard/DashboardSupportWidget";
-import LiveWeatherButton from "@/components/dashboard/LiveWeatherButton";
 
 export default function Page() {
 	return (
@@ -17,10 +16,6 @@ export default function Page() {
 						<LeaderBoard />
 					</div>
 
-					{/* Live Weather button inside LeaderBoard block */}
-					<div className="mt-2 w-full">
-						<LiveWeatherButton from="dashboard" />
-					</div>
 					<DashboardSupportWidget />
 				</div>
 

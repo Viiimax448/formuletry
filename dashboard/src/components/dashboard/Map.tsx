@@ -305,44 +305,45 @@ export default function Map({ filter }: Props) {
 	}
 
 	return (
-		<div className="relative w-full h-full">
-			{/* Floating Minisector Comparison HUD overlay */}
+		<div className="flex flex-col w-full h-full">
+			{/* Minisector Dominance Legend directly on general background above the map */}
 			{comparisonData && (
-				<div className="absolute top-2 left-2 z-20 flex flex-wrap items-center gap-2 px-3 py-1.5 rounded-xl bg-black/85 backdrop-blur-md border border-neutral-800 text-xs font-mono shadow-xl select-none">
+				<div className="flex flex-wrap items-center justify-between gap-2 px-3 pt-1.5 pb-1 text-xs font-mono select-none">
 					<div className="flex items-center gap-1.5 text-cyan-400 font-bold text-[11px] uppercase tracking-wider">
-						<Zap className="w-3.5 h-3.5" />
-						<span>Minisectores:</span>
+						<Zap className="w-3.5 h-3.5 text-cyan-400" />
+						<span>Minisectores en pista:</span>
 					</div>
 
-					<div className="flex items-center gap-2 text-xs">
+					<div className="flex items-center gap-2.5 text-xs">
 						<div className="flex items-center gap-1.5 font-bold">
-							<span className="w-2.5 h-2.5 rounded-full shadow-xs" style={{ backgroundColor: comparisonData.color1 }} />
-							<span className="text-white">{comparisonData.d1.Tla}</span>
-							<span className="text-neutral-400 text-[11px]">({comparisonData.d1Wins})</span>
+							<span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: comparisonData.color1 }} />
+							<span className="text-white font-sans">{comparisonData.d1.FullName || comparisonData.d1.Tla}</span>
+							<span className="text-gray-400 font-mono text-[11px]">({comparisonData.d1Wins})</span>
 						</div>
 
-						<span className="text-neutral-500 font-sans text-[11px]">vs</span>
+						<span className="text-gray-500 font-sans text-xs">vs</span>
 
 						<div className="flex items-center gap-1.5 font-bold">
-							<span className="w-2.5 h-2.5 rounded-full shadow-xs" style={{ backgroundColor: comparisonData.color2 }} />
-							<span className="text-white">{comparisonData.d2.Tla}</span>
-							<span className="text-neutral-400 text-[11px]">({comparisonData.d2Wins})</span>
+							<span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: comparisonData.color2 }} />
+							<span className="text-white font-sans">{comparisonData.d2.FullName || comparisonData.d2.Tla}</span>
+							<span className="text-gray-400 font-mono text-[11px]">({comparisonData.d2Wins})</span>
 						</div>
 
 						{comparisonData.isSameTeam && (
-							<span className="text-[10px] text-neutral-400 bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800 font-sans">
-								{comparisonData.d1.TeamName}
+							<span className="text-[11px] text-gray-400 font-sans">
+								({comparisonData.d1.TeamName})
 							</span>
 						)}
 					</div>
 				</div>
 			)}
 
-			<svg
-				viewBox={`${minX} ${minY} ${widthX} ${widthY}`}
-				className="h-full w-full xl:max-h-screen"
-				xmlns="http://www.w3.org/2000/svg"
-			>
+			<div className="relative flex-1 w-full h-full">
+				<svg
+					viewBox={`${minX} ${minY} ${widthX} ${widthY}`}
+					className="h-full w-full xl:max-h-screen"
+					xmlns="http://www.w3.org/2000/svg"
+				>
 				{/* Dark Base Track */}
 				<path
 					className="stroke-gray-800"
@@ -450,6 +451,7 @@ export default function Map({ filter }: Props) {
 				</>
 			)}
 		</svg>
+			</div>
 		</div>
 	);
 }
