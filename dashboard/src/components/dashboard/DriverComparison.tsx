@@ -27,6 +27,7 @@ export default function DriverComparison({ onClose }: Props) {
 	const driversTiming = useDataStore(({ state }) => state?.TimingData);
 	const timingStats = useDataStore(({ state }) => state?.TimingStats);
 	const timingAppData = useDataStore(({ state }) => state?.TimingAppData);
+	const bestLapSegments = useDataStore((state) => state.bestLapSegments);
 
 	if (!drivers || !driversTiming) return null;
 
@@ -136,8 +137,43 @@ export default function DriverComparison({ onClose }: Props) {
 		];
 	};
 
+	// Minisector segments by mode
+	const getSectorSegments = (
+		timing: TimingDataDriver,
+		stats: TimingStatsDriver | undefined,
+		driverNumber: string
+	) => {
+		return [0, 1, 2].map((idx) => {
+			if (mode === "last") {
+				return timing.Sectors?.[idx]?.Segments || [];
+			}
+
+			// Mode is "best"
+			const cachedPB = bestLapSegments?.[driverNumber]?.[idx];
+			if (cachedPB && cachedPB.length > 0) {
+				return cachedPB;
+			}
+
+			// Fallback reconstruction if PB happened before connection / mock data
+			const segCount = timing.Sectors?.[idx]?.Segments?.length || 4;
+			const isOverallFastest = stats?.BestSectors?.[idx]?.Position === 1 || timing.Sectors?.[idx]?.OverallFastest;
+			const hasBestSector = Boolean(stats?.BestSectors?.[idx]?.Value || timing.BestLapTime?.Value);
+
+			if (isOverallFastest) {
+				return Array.from({ length: segCount }, () => ({ Status: 2051 })); // Purple
+			} else if (hasBestSector) {
+				return Array.from({ length: segCount }, () => ({ Status: 2049 })); // Green
+			}
+
+			return timing.Sectors?.[idx]?.Segments || [];
+		});
+	};
+
 	const s1Values = getSectorValues(timing1, stats1);
 	const s2Values = getSectorValues(timing2, stats2);
+
+	const s1Segments = getSectorSegments(timing1, stats1, id1);
+	const s2Segments = getSectorSegments(timing2, stats2, id2);
 
 	const comparisons = [
 		compareSectors(s1Values[0], s2Values[0]),
@@ -233,6 +269,7 @@ export default function DriverComparison({ onClose }: Props) {
 					isFasterOverall={lapDelta !== null ? lapDelta > 0 : false}
 					comparisons={comparisons}
 					sectorValues={s1Values}
+					sectorSegmentsList={s1Segments}
 					speedTrap={st1}
 					isFasterSpeed={st1 !== null && st2 !== null ? st1 > st2 : false}
 				/>
@@ -248,6 +285,7 @@ export default function DriverComparison({ onClose }: Props) {
 					isFasterOverall={lapDelta !== null ? lapDelta < 0 : false}
 					comparisons={comparisons}
 					sectorValues={s2Values}
+					sectorSegmentsList={s2Segments}
 					speedTrap={st2}
 					isFasterSpeed={st1 !== null && st2 !== null ? st2 > st1 : false}
 				/>
@@ -269,6 +307,7 @@ type CardProps = {
 	isFasterOverall: boolean;
 	comparisons: ReturnType<typeof compareSectors>[];
 	sectorValues: (string | undefined)[];
+	sectorSegmentsList: { Status: number }[][];
 	speedTrap: number | null;
 	isFasterSpeed: boolean;
 };
@@ -285,6 +324,7 @@ function CleanDriverCard({
 	isFasterOverall,
 	comparisons,
 	sectorValues,
+	sectorSegmentsList,
 	speedTrap,
 	isFasterSpeed,
 }: CardProps) {
@@ -345,7 +385,7 @@ function CleanDriverCard({
 					const comp = comparisons[idx];
 					const isWinner = (isDriver1 && comp.winner === 1) || (!isDriver1 && comp.winner === 2);
 					const isOverallFastest = timing.Sectors?.[idx]?.OverallFastest || stats?.BestSectors?.[idx]?.Position === 1;
-					const sectorSegments = timing.Sectors?.[idx]?.Segments || [];
+					const sectorSegments = sectorSegmentsList?.[idx] || timing.Sectors?.[idx]?.Segments || [];
 
 					return (
 						<div key={sectorLabel} className="flex flex-col items-center gap-0.5">
