@@ -6,6 +6,9 @@ import { sortUtc } from "@/lib/sorting";
 export const rad = (deg: number) => deg * (Math.PI / 180);
 
 export const rotate = (x: number, y: number, a: number, px: number, py: number) => {
+	if (a === 0) {
+		return { x, y };
+	}
 	const c = Math.cos(rad(a));
 	const s = Math.sin(rad(a));
 
@@ -15,7 +18,7 @@ export const rotate = (x: number, y: number, a: number, px: number, py: number) 
 	const newX = x * c - y * s;
 	const newY = y * c + x * s;
 
-	return { y: newX + px, x: newY + py };
+	return { x: newX + px, y: newY + py };
 };
 
 export const calculateDistance = (x1: number, y1: number, x2: number, y2: number) => {

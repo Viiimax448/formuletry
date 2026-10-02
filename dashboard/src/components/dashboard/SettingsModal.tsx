@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Monitor, Zap, Gauge, Tv, AlignJustify, Star, Play, Pause, RotateCcw } from "lucide-react";
+import { X, Monitor, Zap, Gauge, Tv, AlignJustify, Star, Play, Pause, RotateCcw, MapPin } from "lucide-react";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { useEffect, useRef } from "react";
 
@@ -27,7 +27,8 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
     delayIsPaused, setDelayIsPaused,
     oledMode, setOledMode,
     speedUnit, setSpeedUnit,
-    compactMode, setCompactMode 
+    compactMode, setCompactMode,
+    circuitOverride, setCircuitOverride
   } = useSettingsStore();
 
   // Timer para incrementar delay cuando está pausado
@@ -191,6 +192,66 @@ export default function SettingsModal({ onClose }: { onClose: () => void }) {
                 active={compactMode}
                 onClick={() => setCompactMode(!compactMode)}
               />
+            </div>
+          </div>
+
+          {/* SECCIÓN: CIRCUITO / MAPA */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-blue-400 uppercase tracking-widest">
+                Mapa de Pista
+              </h3>
+            </div>
+
+            <div className="bg-black/20 p-4 rounded-xl border border-white/5 space-y-3">
+              <div className="flex items-center gap-3">
+                <MapPin className="w-5 h-5 text-gray-400" />
+                <div>
+                  <p className="text-white font-medium text-sm">Circuito a Visualizar</p>
+                  <p className="text-xs text-gray-500">Fuerza el trazado si hubo cambios de sede</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setCircuitOverride("auto")}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium border transition-colors ${
+                    circuitOverride === "auto"
+                      ? "bg-blue-600/30 border-blue-500 text-white"
+                      : "bg-black/30 border-white/5 text-gray-400 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  <span>⚡ Automático (según Live Timing / Fallback)</span>
+                  {circuitOverride === "auto" && <span className="text-blue-400 text-xs">✓</span>}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCircuitOverride("sepang")}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium border transition-colors ${
+                    circuitOverride === "sepang"
+                      ? "bg-emerald-600/30 border-emerald-500 text-white"
+                      : "bg-black/30 border-white/5 text-gray-400 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  <span>🇲🇾 Sepang (Malasia) [Sustituto Baréin]</span>
+                  {circuitOverride === "sepang" && <span className="text-emerald-400 text-xs">✓</span>}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCircuitOverride("bahrain")}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium border transition-colors ${
+                    circuitOverride === "bahrain"
+                      ? "bg-blue-600/30 border-blue-500 text-white"
+                      : "bg-black/30 border-white/5 text-gray-400 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  <span>🇧🇭 Sakhir (Baréin)</span>
+                  {circuitOverride === "bahrain" && <span className="text-blue-400 text-xs">✓</span>}
+                </button>
+              </div>
             </div>
           </div>
 

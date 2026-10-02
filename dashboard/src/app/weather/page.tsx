@@ -56,6 +56,7 @@ export const TRACK_LOCATIONS: TrackWeatherInfo[] = [
 	{ id: "vegas", name: "Las Vegas GP", circuitName: "Las Vegas Strip Circuit", countryName: "United States", countryCode: "usa", lat: 36.1147, lon: -115.168 },
 	{ id: "qatar", name: "Qatar GP", circuitName: "Lusail International Circuit", countryName: "Qatar", countryCode: "qat", lat: 25.4900, lon: 51.4542 },
 	{ id: "abudhabi", name: "Abu Dhabi GP", circuitName: "Yas Marina Circuit", countryName: "United Arab Emirates", countryCode: "uae", lat: 24.4672, lon: 54.6031 },
+	{ id: "malaysia", name: "Malaysian GP", circuitName: "Sepang International Circuit", countryName: "Malaysia", countryCode: "mas", lat: 2.7608, lon: 101.7380 },
 ];
 
 type OpenMeteoCurrent = {

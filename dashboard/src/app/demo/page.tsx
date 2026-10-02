@@ -164,7 +164,7 @@ export default function DemoPage() {
 					<DashboardSupportWidget />
 				</div>
 
-				<div className="flex-1 w-full h-[35rem] lg:h-[42rem] lg:min-h-[35rem] rounded-xl bg-[#0f131d] border border-gray-800/60 p-2 shadow-lg overflow-hidden flex flex-col items-center justify-center">
+				<div className="flex-1 w-full h-[35rem] lg:h-auto lg:min-h-[35rem]">
 					<Map />
 				</div>
 			</div>

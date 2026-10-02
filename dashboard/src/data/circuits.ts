@@ -23,4 +23,5 @@ export const CIRCUIT_COORDINATES = {
   lvs: { lat: 36.1028, lng: -115.174, name: "Las Vegas Street Circuit" },
   qat: { lat: 25.4886, lng: 51.4542, name: "Losail International Circuit" },
   uae: { lat: 24.4672, lng: 54.6031, name: "Yas Marina Circuit" },
+  mas: { lat: 2.7608, lng: 101.738, name: "Sepang International Circuit" },
 };
