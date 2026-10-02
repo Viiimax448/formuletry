@@ -21,7 +21,7 @@ import {
 	rotate,
 } from "@/lib/map";
 
-const SPACE = 600;
+const SPACE = 3000;
 const ROTATION_FIX = 0;
 
 // Function to calculate driver position based on their segment progress
@@ -153,8 +153,8 @@ export default function Map({ filter }: Props) {
 				number: corner.number,
 				pos: rotate(corner.trackPosition.x, corner.trackPosition.y, fixedRotation, centerX, centerY),
 				labelPos: rotate(
-					corner.trackPosition.x + 650 * Math.cos(rad(corner.angle)),
-					corner.trackPosition.y + 650 * Math.sin(rad(corner.angle)),
+					corner.trackPosition.x + 560 * Math.cos(rad(corner.angle)),
+					corner.trackPosition.y + 560 * Math.sin(rad(corner.angle)),
 					fixedRotation,
 					centerX,
 					centerY,
@@ -209,7 +209,7 @@ export default function Map({ filter }: Props) {
 					color,
 					pulse: status?.pulse,
 					number: sector.number,
-					strokeWidth: color === "stroke-white" ? 100 : 150,
+					strokeWidth: color === "stroke-white" ? 70 : 110,
 					d: `M${sector.points[0].x},${sector.points[0].y} ${sector.points.map((point) => `L${point.x},${point.y}`).join(" ")}`,
 				};
 			})
@@ -342,16 +342,16 @@ export default function Map({ filter }: Props) {
 				</div>
 			)}
 
-			<div className="relative flex-1 w-full h-full">
+			<div className="relative flex-1 w-full h-full flex items-center justify-center p-3 sm:p-6 md:p-8">
 				<svg
 					viewBox={`${minX} ${minY} ${widthX} ${widthY}`}
-					className="h-full w-full xl:max-h-screen"
+					className="w-full h-full max-h-[48vh] sm:max-h-[58vh] lg:max-h-[68vh] object-contain"
 					xmlns="http://www.w3.org/2000/svg"
 				>
 					{/* Dark Base Track */}
 					<path
 						className="stroke-slate-700/80"
-						strokeWidth={500}
+						strokeWidth={400}
 						strokeLinejoin="round"
 						strokeLinecap="round"
 						fill="transparent"
@@ -364,7 +364,7 @@ export default function Map({ filter }: Props) {
 							<path
 								key={slice.id}
 								stroke={slice.color}
-								strokeWidth={160}
+								strokeWidth={120}
 								strokeLinecap="round"
 								strokeLinejoin="round"
 								fill="transparent"
@@ -398,11 +398,11 @@ export default function Map({ filter }: Props) {
 					{finishLine && (
 						<line
 							x1={finishLine.x}
-							y1={finishLine.y - 250}
+							y1={finishLine.y - 180}
 							x2={finishLine.x}
-							y2={finishLine.y + 250}
+							y2={finishLine.y + 180}
 							stroke="#FFFFFF"
-							strokeWidth={120}
+							strokeWidth={80}
 							strokeLinecap="round"
 							transform={`rotate(${finishLine.startAngle + 90}, ${finishLine.x}, ${finishLine.y})`}
 						/>
@@ -476,7 +476,7 @@ const CornerNumber: React.FC<CornerNumberProps> = ({ number, x, y }) => {
 			x={x}
 			y={y}
 			className="fill-zinc-400 font-mono select-none"
-			fontSize={300}
+			fontSize={230}
 			fontWeight="bold"
 			textAnchor="middle"
 			dominantBaseline="middle"
@@ -504,10 +504,10 @@ type CarDotProps = {
 const CarDot = ({ pos, name, color, favoriteDriver, pit, hidden, rotation, centerX, centerY }: CarDotProps) => {
 	const rotatedPos = rotate(pos.X, pos.Y, rotation, centerX, centerY);
 	const transform = [`translateX(${rotatedPos.x}px)`, `translateY(${rotatedPos.y}px)`].join(" ");
-	const dotColor = color ? (color.startsWith("#") ? color : `#${color}`) : "#FFFFFF";
+	const fillColor = color ? (color.startsWith("#") ? color : `#${color}`) : "#CBD5E1";
 
-	const radius = favoriteDriver ? 120 : 90;
-	const fontSize = favoriteDriver ? 380 : 310;
+	const radius = favoriteDriver ? 130 : 90;
+	const fontSize = favoriteDriver ? 440 : 330;
 
 	return (
 		<g
@@ -515,46 +515,27 @@ const CarDot = ({ pos, name, color, favoriteDriver, pit, hidden, rotation, cente
 			style={{
 				transition: "all 1s linear",
 				transform,
+				fill: fillColor,
 			}}
 		>
 			{/* Pulse effect for favorite driver */}
 			{favoriteDriver && (
 				<circle
-					r={radius + 60}
+					r={radius + 40}
 					fill="none"
-					stroke={dotColor}
-					strokeWidth={28}
+					stroke={fillColor}
+					strokeWidth={20}
 					className="animate-ping opacity-60"
 				/>
 			)}
 
-			{/* Drop shadow / dark outline ring around dot */}
-			<circle
-				r={radius + 16}
-				fill="#0B0F19"
-				opacity={0.95}
-			/>
-
-			{/* Car dot circle */}
-			<circle
-				r={radius}
-				fill={dotColor}
-				stroke="#FFFFFF"
-				strokeWidth={favoriteDriver ? 24 : 16}
-			/>
-
-			{/* Driver 3-letter code badge with dark stroke outline */}
+			<circle id="map.driver.circle" r={radius} />
 			<text
-				fontWeight="800"
+				id="map.driver.text"
+				fontWeight="bold"
 				fontSize={fontSize}
-				fill="#FFFFFF"
-				stroke="#0B0F19"
-				strokeWidth={favoriteDriver ? 38 : 28}
-				paintOrder="stroke"
-				strokeLinejoin="round"
 				style={{
-					fontFamily: "var(--font-geist-mono), monospace, system-ui",
-					transform: `translateX(${radius + 36}px) translateY(${fontSize * 0.35}px)`,
+					transform: `translateX(${radius + 35}px) translateY(-${radius * 0.3}px)`,
 					userSelect: "none",
 				}}
 			>
