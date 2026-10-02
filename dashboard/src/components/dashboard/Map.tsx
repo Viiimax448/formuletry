@@ -21,7 +21,6 @@ import {
 	rotate,
 } from "@/lib/map";
 
-const SPACE = 3000;
 const ROTATION_FIX = 0;
 
 // Function to calculate driver position based on their segment progress
@@ -131,11 +130,13 @@ export default function Map({ filter }: Props) {
 	const [originalTrackPoints, setOriginalTrackPoints] = useState<null | { x: number; y: number }[]>(null);
 
 	useEffect(() => {
-		(async () => {
+		let isMounted = true;
+
+		const updateMap = async () => {
 			const targetKey = circuitKey || circuitShortName || meetingName || 999;
 			const mapJson = await fetchMap(targetKey, circuitOverride);
 
-			if (!mapJson) return;
+			if (!mapJson || !isMounted) return;
 
 			const centerX = (Math.max(...mapJson.x) + Math.min(...mapJson.x)) / 2;
 			const centerY = (Math.max(...mapJson.y) + Math.min(...mapJson.y)) / 2;
@@ -170,6 +171,10 @@ export default function Map({ filter }: Props) {
 			const minPointY = Math.min(...pointsY);
 			const maxPointY = Math.max(...pointsY);
 
+			// On mobile, keep original full layout (SPACE = 650); on PC, make it comfortably larger without touching borders (SPACE = 1500)
+			const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+			const SPACE = isMobile ? 650 : 1500;
+
 			const cMinX = minPointX - SPACE;
 			const cMinY = minPointY - SPACE;
 			const cWidthX = maxPointX - minPointX + SPACE * 2;
@@ -194,7 +199,19 @@ export default function Map({ filter }: Props) {
 			setCorners(cornerPositions);
 			setFinishLine({ x: rotatedFinishLine.x, y: rotatedFinishLine.y, startAngle });
 			setOriginalTrackPoints(originalPoints);
-		})();
+		};
+
+		updateMap();
+
+		const handleResize = () => {
+			updateMap();
+		};
+		window.addEventListener("resize", handleResize);
+
+		return () => {
+			isMounted = false;
+			window.removeEventListener("resize", handleResize);
+		};
 	}, [circuitKey, circuitShortName, meetingName, circuitOverride]);
 
 	const yellowSectors = useMemo(() => findYellowSectors(raceControlMessages), [raceControlMessages]);
@@ -342,10 +359,10 @@ export default function Map({ filter }: Props) {
 				</div>
 			)}
 
-			<div className="relative flex-1 w-full h-full flex items-center justify-center p-3 sm:p-6 md:p-8">
+			<div className="relative flex-1 w-full h-full flex items-center justify-center p-0 md:p-3 lg:p-4">
 				<svg
 					viewBox={`${minX} ${minY} ${widthX} ${widthY}`}
-					className="w-full h-full max-h-[48vh] sm:max-h-[58vh] lg:max-h-[68vh] object-contain"
+					className="w-full h-full md:max-h-[82vh] lg:max-h-[88vh] object-contain"
 					xmlns="http://www.w3.org/2000/svg"
 				>
 					{/* If 2 drivers selected, render the Minisector Comparison Slices */}
