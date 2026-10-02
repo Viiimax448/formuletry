@@ -154,18 +154,8 @@ export default function DriverComparison({ onClose }: Props) {
 				return cachedPB;
 			}
 
-			// Fallback reconstruction if PB happened before connection / mock data
-			const segCount = timing.Sectors?.[idx]?.Segments?.length || 4;
-			const isOverallFastest = stats?.BestSectors?.[idx]?.Position === 1 || timing.Sectors?.[idx]?.OverallFastest;
-			const hasBestSector = Boolean(stats?.BestSectors?.[idx]?.Value || timing.BestLapTime?.Value);
-
-			if (isOverallFastest) {
-				return Array.from({ length: segCount }, () => ({ Status: 2051 })); // Purple
-			} else if (hasBestSector) {
-				return Array.from({ length: segCount }, () => ({ Status: 2049 })); // Green
-			}
-
-			return timing.Sectors?.[idx]?.Segments || [];
+			// If PB happened before connection and was not captured, do NOT fake all-purple/all-green minisectors
+			return [];
 		});
 	};
 
@@ -258,6 +248,7 @@ export default function DriverComparison({ onClose }: Props) {
 			{/* 2 Comparison Cards Side-by-Side */}
 			<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
 				<CleanDriverCard
+					mode={mode}
 					driver={driver1}
 					timing={timing1}
 					stats={stats1}
@@ -274,6 +265,7 @@ export default function DriverComparison({ onClose }: Props) {
 					isFasterSpeed={st1 !== null && st2 !== null ? st1 > st2 : false}
 				/>
 				<CleanDriverCard
+					mode={mode}
 					driver={driver2}
 					timing={timing2}
 					stats={stats2}
@@ -296,6 +288,7 @@ export default function DriverComparison({ onClose }: Props) {
 
 // Clean Card aligned with exact user specifications
 type CardProps = {
+	mode: "last" | "best";
 	driver: Driver;
 	timing: TimingDataDriver;
 	stats?: TimingStatsDriver;
@@ -313,6 +306,7 @@ type CardProps = {
 };
 
 function CleanDriverCard({
+	mode,
 	driver,
 	timing,
 	stats,
@@ -384,7 +378,16 @@ function CleanDriverCard({
 					const sectorVal = sectorValues[idx] || "--";
 					const comp = comparisons[idx];
 					const isWinner = (isDriver1 && comp.winner === 1) || (!isDriver1 && comp.winner === 2);
-					const isOverallFastest = timing.Sectors?.[idx]?.OverallFastest || stats?.BestSectors?.[idx]?.Position === 1;
+
+					// In mode "last", only show purple if THIS specific last-lap sector value was overall fastest.
+					// Do not let a past session PB purple taint the last lap comparison.
+					const isOverallFastest = mode === "best"
+						? Boolean(timing.Sectors?.[idx]?.OverallFastest || stats?.BestSectors?.[idx]?.Position === 1)
+						: Boolean(
+							(timing.Sectors?.[idx]?.OverallFastest && (timing.Sectors?.[idx]?.Value === sectorVal || timing.Sectors?.[idx]?.PreviousValue === sectorVal)) ||
+							(stats?.BestSectors?.[idx]?.Position === 1 && stats?.BestSectors?.[idx]?.Value === sectorVal)
+						);
+
 					const sectorSegments = sectorSegmentsList?.[idx] || timing.Sectors?.[idx]?.Segments || [];
 
 					return (

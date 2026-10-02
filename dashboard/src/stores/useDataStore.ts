@@ -17,22 +17,43 @@ type DataStore = {
 	setPositions: (positions: Positions | null) => void;
 };
 
+const loadCachedBestLaps = (): Record<string, Segment[][]> => {
+	if (typeof window === "undefined") return {};
+	try {
+		const cached = localStorage.getItem("f1_best_lap_segments");
+		return cached ? JSON.parse(cached) : {};
+	} catch {
+		return {};
+	}
+};
+
 export const useDataStore = create<DataStore>((set) => ({
 	state: null,
 	carsData: null,
 	positions: null,
-	bestLapSegments: {},
+	bestLapSegments: loadCachedBestLaps(),
 
 	setState: (partialState: Partial<State> | null) =>
 		set((prev) => {
 			if (!partialState) return { state: null };
 
 			let updatedBestLapSegments = prev.bestLapSegments;
-			const timingLines = partialState.TimingData?.Lines;
+			let hasChanges = false;
 
+			// 1. If backend (Railway) sent captured BestLapSegments, merge them
+			const backendBestLaps = (partialState as Record<string, unknown>)?.BestLapSegments as Record<string, Segment[][]> | undefined;
+			if (backendBestLaps && typeof backendBestLaps === "object") {
+				updatedBestLapSegments = {
+					...updatedBestLapSegments,
+					...backendBestLaps,
+				};
+				hasChanges = true;
+			}
+
+			// 2. Real-time capture if a PB is set while user is active
+			const timingLines = partialState.TimingData?.Lines;
 			if (timingLines) {
-				let hasChanges = false;
-				const newSegmentsMap = { ...prev.bestLapSegments };
+				const newSegmentsMap = { ...updatedBestLapSegments };
 
 				Object.entries(timingLines).forEach(([num, timing]) => {
 					const isPB =
@@ -57,6 +78,15 @@ export const useDataStore = create<DataStore>((set) => ({
 
 				if (hasChanges) {
 					updatedBestLapSegments = newSegmentsMap;
+				}
+			}
+
+			// 3. Persist to localStorage so refreshing never loses historic PB minisectors
+			if (hasChanges && typeof window !== "undefined") {
+				try {
+					localStorage.setItem("f1_best_lap_segments", JSON.stringify(updatedBestLapSegments));
+				} catch {
+					// Ignore storage quota
 				}
 			}
 
