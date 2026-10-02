@@ -209,7 +209,7 @@ export default function Map({ filter }: Props) {
 					color,
 					pulse: status?.pulse,
 					number: sector.number,
-					strokeWidth: color === "stroke-white" ? 70 : 110,
+					strokeWidth: 110,
 					d: `M${sector.points[0].x},${sector.points[0].y} ${sector.points.map((point) => `L${point.x},${point.y}`).join(" ")}`,
 				};
 			})
@@ -348,16 +348,6 @@ export default function Map({ filter }: Props) {
 					className="w-full h-full max-h-[48vh] sm:max-h-[58vh] lg:max-h-[68vh] object-contain"
 					xmlns="http://www.w3.org/2000/svg"
 				>
-					{/* Dark Base Track */}
-					<path
-						className="stroke-slate-700/80"
-						strokeWidth={400}
-						strokeLinejoin="round"
-						strokeLinecap="round"
-						fill="transparent"
-						d={`M${points[0].x},${points[0].y} ${points.map((point) => `L${point.x},${point.y}`).join(" ")}`}
-					/>
-
 					{/* If 2 drivers selected, render the Minisector Comparison Slices */}
 					{comparisonData && comparisonData.segmentSlices.length > 0 ? (
 						comparisonData.segmentSlices.map((slice) => (
