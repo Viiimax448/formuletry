@@ -85,7 +85,6 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 				{
 					"opacity-50": timingDriver.KnockedOut || timingDriver.Retired || timingDriver.Stopped,
 					"bg-sky-800/20 border-sky-600/30": favoriteDriver,
-					"bg-violet-800/20 border-violet-600/30": hasFastest,
 					"bg-red-800/20 border-red-600/30": sessionPart != undefined && inDangerZone(position, sessionPart),
 					"bg-indigo-500/20": isSelected, // Highlight selected row
 				}

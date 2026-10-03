@@ -13,11 +13,9 @@ import { getComparisonColors } from "@/lib/teamColors";
 import { parseTimeToSeconds } from "@/lib/timingComparison";
 import {
 	createSectors,
-	createTimingSplits,
 	findYellowSectors,
 	getSectorColor,
 	type MapSector,
-	type TimingSplitLine,
 	prioritizeColoredSectors,
 	rad,
 	rotate,
@@ -111,7 +109,6 @@ type Props = {
 
 export default function Map({ filter }: Props) {
 	const showCornerNumbers = useSettingsStore((state) => state.showCornerNumbers);
-	const showSectorNumbers = useSettingsStore((state) => state.showSectorNumbers);
 	const favoriteDrivers = useSettingsStore((state) => state.favoriteDrivers);
 	const circuitOverride = useSettingsStore((state) => state.circuitOverride);
 	const comparisonMode = useSettingsStore((state) => state.comparisonMode);
@@ -131,7 +128,6 @@ export default function Map({ filter }: Props) {
 
 	const [points, setPoints] = useState<null | { x: number; y: number }[]>(null);
 	const [sectors, setSectors] = useState<MapSector[]>([]);
-	const [timingSplits, setTimingSplits] = useState<TimingSplitLine[]>([]);
 	const [corners, setCorners] = useState<Corner[]>([]);
 	const [rotation, setRotation] = useState<number>(0);
 	const [finishLine, setFinishLine] = useState<null | { x: number; y: number; startAngle: number }>(null);
@@ -158,14 +154,6 @@ export default function Map({ filter }: Props) {
 				end: rotate(s.end.x, s.end.y, fixedRotation, centerX, centerY),
 				labelPos: rotate(s.labelPos.x, s.labelPos.y, fixedRotation, centerX, centerY),
 				points: s.points.map((p) => rotate(p.x, p.y, fixedRotation, centerX, centerY)),
-			}));
-
-			const rawSplits = createTimingSplits(mapJson, rawSectors);
-			const rotatedSplits = rawSplits.map((split) => ({
-				...split,
-				pos: rotate(split.pos.x, split.pos.y, fixedRotation, centerX, centerY),
-				labelPos: rotate(split.labelPos.x, split.labelPos.y, fixedRotation, centerX, centerY),
-				angle: split.angle + fixedRotation,
 			}));
 
 			const cornerPositions: Corner[] = mapJson.corners.map((corner) => ({
@@ -212,7 +200,6 @@ export default function Map({ filter }: Props) {
 			setCenter([centerX, centerY]);
 			setBounds([cMinX, cMinY, cWidthX, cWidthY]);
 			setSectors(sectors);
-			setTimingSplits(rotatedSplits);
 			setPoints(rotatedPoints);
 			setRotation(fixedRotation);
 			setCorners(cornerPositions);
@@ -507,23 +494,6 @@ export default function Map({ filter }: Props) {
 						})
 					)}
 
-					{/* Intermediate Timing Lines (I1 & I2) */}
-					{timingSplits.map((split) => (
-						<g key={`timing.split.${split.name}`}>
-							<line
-								x1={split.pos.x}
-								y1={split.pos.y - 120}
-								x2={split.pos.x}
-								y2={split.pos.y + 120}
-								stroke="#06B6D4"
-								strokeWidth={40}
-								strokeDasharray="25 20"
-								strokeLinecap="round"
-								transform={`rotate(${split.angle + 90}, ${split.pos.x}, ${split.pos.y})`}
-							/>
-						</g>
-					))}
-
 					{/* Start / Finish line */}
 					{finishLine && (
 						<line
@@ -537,18 +507,6 @@ export default function Map({ filter }: Props) {
 							transform={`rotate(${finishLine.startAngle + 90}, ${finishLine.x}, ${finishLine.y})`}
 						/>
 					)}
-
-					{/* Sector Badges 1, 2, and 3 */}
-					{showSectorNumbers &&
-						sectors.map((sector) => (
-							<SectorBadge
-								key={`sector.badge.${sector.number}`}
-								number={sector.number}
-								x={sector.labelPos.x}
-								y={sector.labelPos.y}
-								isYellow={yellowSectors.has(sector.number)}
-							/>
-						))}
 
 					{/* Corner Numbers */}
 					{showCornerNumbers &&
@@ -605,73 +563,6 @@ export default function Map({ filter }: Props) {
 		</div>
 	);
 }
-
-type SectorBadgeProps = {
-	number: number;
-	x: number;
-	y: number;
-	isYellow?: boolean;
-};
-
-const SectorBadge: React.FC<SectorBadgeProps> = ({ number, x, y, isYellow }) => {
-	const strokeColor = isYellow ? "#EAB308" : "#06B6D4";
-	const glowColor = isYellow ? "rgba(234, 179, 8, 0.45)" : "rgba(6, 182, 212, 0.35)";
-
-	return (
-		<g className="cursor-default select-none pointer-events-none transition-all duration-300">
-			{/* Ambient Glow */}
-			<circle
-				cx={x}
-				cy={y}
-				r={280}
-				fill="none"
-				stroke={glowColor}
-				strokeWidth={40}
-				className="opacity-60"
-			/>
-
-			{/* Main Badge Container */}
-			<circle
-				cx={x}
-				cy={y}
-				r={230}
-				fill="#0B1120"
-				stroke={strokeColor}
-				strokeWidth={20}
-				className={isYellow ? "animate-pulse" : ""}
-			/>
-
-			{/* Sub-label "SECTOR" */}
-			<text
-				x={x}
-				y={y - 55}
-				fill={isYellow ? "#FDE047" : "#94A3B8"}
-				fontSize={75}
-				fontWeight="bold"
-				letterSpacing="3"
-				textAnchor="middle"
-				dominantBaseline="middle"
-				className="font-mono"
-			>
-				SECTOR
-			</text>
-
-			{/* Big Bold Sector Numeral 1, 2, 3 */}
-			<text
-				x={x}
-				y={y + 65}
-				fill={isYellow ? "#FEF08A" : "#FFFFFF"}
-				fontSize={200}
-				fontWeight="900"
-				textAnchor="middle"
-				dominantBaseline="middle"
-				className="font-mono"
-			>
-				{number}
-			</text>
-		</g>
-	);
-};
 
 type CornerNumberProps = {
 	number: number;

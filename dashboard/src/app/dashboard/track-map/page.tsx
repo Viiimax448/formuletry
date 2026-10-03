@@ -87,7 +87,6 @@ const TrackMapDriver = ({ position, driver, timingDriver }: TrackMapDriverProps)
 			className={clsx("flex flex-col gap-1 rounded-lg p-1.5 select-none", {
 				"opacity-50": timingDriver.KnockedOut || timingDriver.Retired || timingDriver.Stopped,
 				"bg-sky-800/30": favoriteDriver,
-				"bg-violet-800/30": hasFastest,
 				"bg-red-800/30": sessionPart != undefined && inDangerZone(position, sessionPart),
 			})}
 		>
