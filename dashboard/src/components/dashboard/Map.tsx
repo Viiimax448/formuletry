@@ -13,9 +13,11 @@ import { getComparisonColors } from "@/lib/teamColors";
 import { parseTimeToSeconds } from "@/lib/timingComparison";
 import {
 	createSectors,
+	createTimingSplits,
 	findYellowSectors,
 	getSectorColor,
 	type MapSector,
+	type TimingSplitLine,
 	prioritizeColoredSectors,
 	rad,
 	rotate,
@@ -23,20 +25,51 @@ import {
 
 const ROTATION_FIX = 0;
 
-// Function to calculate driver position based on their segment progress
+// Function to calculate driver position based on their sector and segment progress
 function getDriverPosition(
 	timingDriver: TimingDataDriver | undefined,
 	originalTrackPoints: { x: number; y: number }[] | null,
+	splitIndices: [number, number] = [190, 433],
 ): PositionCar | null {
 	if (!timingDriver || !originalTrackPoints || originalTrackPoints.length === 0) {
 		return null;
 	}
 
-	// Get all segments from all sectors
-	const allSegments = timingDriver.Sectors.flatMap((sector) => sector.Segments);
+	const totalPoints = originalTrackPoints.length;
+	const s1End = Math.min(splitIndices[0], totalPoints - 1);
+	const s2End = Math.min(splitIndices[1], totalPoints - 1);
 
-	if (allSegments.length === 0) {
-		// No segments available, position at start/finish line
+	// Sector point ranges: S1 -> [0, s1End], S2 -> [s1End, s2End], S3 -> [s2End, totalPoints - 1]
+	const sectorRanges: [number, number][] = [
+		[0, s1End],
+		[s1End, s2End],
+		[s2End, totalPoints - 1],
+	];
+
+	// Find the furthest sector and segment that has active or completed progress
+	let activeSectorIdx = -1;
+	let activeSegmentIdx = -1;
+	let activeStatus = 0;
+
+	if (timingDriver.Sectors && timingDriver.Sectors.length > 0) {
+		for (let s = timingDriver.Sectors.length - 1; s >= 0; s--) {
+			const sec = timingDriver.Sectors[s];
+			const segs = sec.Segments || [];
+			for (let i = segs.length - 1; i >= 0; i--) {
+				const st = segs[i]?.Status;
+				if (st !== undefined && st > 0) {
+					activeSectorIdx = s;
+					activeSegmentIdx = i;
+					activeStatus = st;
+					break;
+				}
+			}
+			if (activeSectorIdx !== -1) break;
+		}
+	}
+
+	if (activeSectorIdx === -1) {
+		// Fallback to start
 		return {
 			Status: "OnTrack",
 			X: originalTrackPoints[0].x,
@@ -45,47 +78,17 @@ function getDriverPosition(
 		};
 	}
 
-	// Find the furthest segment with a meaningful status
-	// Status values: 0 = not started, 1 = in progress, 2+ = completed
-	let furthestSegmentIndex = -1;
-	for (let i = allSegments.length - 1; i >= 0; i--) {
-		const status = allSegments[i].Status;
-		if (status !== undefined && status > 0) {
-			furthestSegmentIndex = i;
-			break;
-		}
-	}
+	const safeSectorIdx = Math.min(Math.max(activeSectorIdx, 0), sectorRanges.length - 1);
+	const [rangeStart, rangeEnd] = sectorRanges[safeSectorIdx];
+	const totalSegmentsInSector = Math.max(timingDriver.Sectors[safeSectorIdx]?.Segments?.length || 1, 1);
 
-	// If no completed segments found, check for any segment with status 0 (current segment)
-	if (furthestSegmentIndex === -1) {
-		for (let i = 0; i < allSegments.length; i++) {
-			if (allSegments[i].Status !== undefined) {
-				furthestSegmentIndex = i;
-				break;
-			}
-		}
-	}
+	const baseRatio = activeSegmentIdx / totalSegmentsInSector;
+	const segmentProgress = activeStatus === 1 ? 0.5 : 0;
+	const segmentSize = 1 / totalSegmentsInSector;
+	const adjustedRatio = Math.min(Math.max(baseRatio + segmentProgress * segmentSize, 0), 1);
 
-	// Still no segments found, default to start
-	if (furthestSegmentIndex === -1) {
-		furthestSegmentIndex = 0;
-	}
-
-	// Calculate position index based on segment progress
-	// Add small offset for in-progress segments to show forward movement
-	const baseRatio = furthestSegmentIndex / Math.max(allSegments.length - 1, 1);
-	const currentSegmentStatus = allSegments[furthestSegmentIndex]?.Status || 0;
-
-	// Add fractional progress within current segment if it's in progress (status 1)
-	const segmentProgress = currentSegmentStatus === 1 ? 0.5 : 0;
-	const segmentSize = 1 / Math.max(allSegments.length, 1);
-	const adjustedRatio = baseRatio + segmentProgress * segmentSize;
-
-	const positionIndex = Math.floor(adjustedRatio * (originalTrackPoints.length - 1));
-
-	// Ensure we don't go out of bounds
-	const safeIndex = Math.min(Math.max(positionIndex, 0), originalTrackPoints.length - 1);
-
+	const positionIndex = Math.floor(rangeStart + adjustedRatio * (rangeEnd - rangeStart));
+	const safeIndex = Math.min(Math.max(positionIndex, 0), totalPoints - 1);
 	const trackPoint = originalTrackPoints[safeIndex];
 
 	return {
@@ -108,12 +111,16 @@ type Props = {
 
 export default function Map({ filter }: Props) {
 	const showCornerNumbers = useSettingsStore((state) => state.showCornerNumbers);
+	const showSectorNumbers = useSettingsStore((state) => state.showSectorNumbers);
 	const favoriteDrivers = useSettingsStore((state) => state.favoriteDrivers);
 	const circuitOverride = useSettingsStore((state) => state.circuitOverride);
+	const comparisonMode = useSettingsStore((state) => state.comparisonMode);
 
 	const drivers = useDataStore((state) => state?.state?.DriverList);
 	const trackStatus = useDataStore((state) => state?.state?.TrackStatus);
 	const timingDrivers = useDataStore((state) => state?.state?.TimingData);
+	const timingStats = useDataStore((state) => state?.state?.TimingStats);
+	const bestLapSegments = useDataStore((state) => state.bestLapSegments);
 	const raceControlMessages = useDataStore((state) => state?.state?.RaceControlMessages?.Messages ?? undefined);
 	const circuitKey = useDataStore((state) => state?.state?.SessionInfo?.Meeting.Circuit.Key);
 	const circuitShortName = useDataStore((state) => state?.state?.SessionInfo?.Meeting.Circuit.ShortName);
@@ -124,6 +131,7 @@ export default function Map({ filter }: Props) {
 
 	const [points, setPoints] = useState<null | { x: number; y: number }[]>(null);
 	const [sectors, setSectors] = useState<MapSector[]>([]);
+	const [timingSplits, setTimingSplits] = useState<TimingSplitLine[]>([]);
 	const [corners, setCorners] = useState<Corner[]>([]);
 	const [rotation, setRotation] = useState<number>(0);
 	const [finishLine, setFinishLine] = useState<null | { x: number; y: number; startAngle: number }>(null);
@@ -143,11 +151,21 @@ export default function Map({ filter }: Props) {
 
 			const fixedRotation = mapJson.rotation ? mapJson.rotation + ROTATION_FIX : 0;
 
-			const sectors = createSectors(mapJson).map((s) => ({
+			const rawSectors = createSectors(mapJson);
+			const sectors = rawSectors.map((s) => ({
 				...s,
 				start: rotate(s.start.x, s.start.y, fixedRotation, centerX, centerY),
 				end: rotate(s.end.x, s.end.y, fixedRotation, centerX, centerY),
+				labelPos: rotate(s.labelPos.x, s.labelPos.y, fixedRotation, centerX, centerY),
 				points: s.points.map((p) => rotate(p.x, p.y, fixedRotation, centerX, centerY)),
+			}));
+
+			const rawSplits = createTimingSplits(mapJson, rawSectors);
+			const rotatedSplits = rawSplits.map((split) => ({
+				...split,
+				pos: rotate(split.pos.x, split.pos.y, fixedRotation, centerX, centerY),
+				labelPos: rotate(split.labelPos.x, split.labelPos.y, fixedRotation, centerX, centerY),
+				angle: split.angle + fixedRotation,
 			}));
 
 			const cornerPositions: Corner[] = mapJson.corners.map((corner) => ({
@@ -194,6 +212,7 @@ export default function Map({ filter }: Props) {
 			setCenter([centerX, centerY]);
 			setBounds([cMinX, cMinY, cWidthX, cWidthY]);
 			setSectors(sectors);
+			setTimingSplits(rotatedSplits);
 			setPoints(rotatedPoints);
 			setRotation(fixedRotation);
 			setCorners(cornerPositions);
@@ -245,14 +264,56 @@ export default function Map({ filter }: Props) {
 		const d2 = drivers[id2];
 		const t1 = timingDrivers.Lines[id1];
 		const t2 = timingDrivers.Lines[id2];
+		const stats1 = timingStats?.Lines[id1];
+		const stats2 = timingStats?.Lines[id2];
 
 		if (!d1 || !d2 || !t1 || !t2) return null;
 
 		const { color1, color2, isSameTeam } = getComparisonColors(d1, d2);
+		const mode = comparisonMode || "last";
 
-		const seg1 = t1.Sectors?.flatMap((s) => s.Segments) || [];
-		const seg2 = t2.Sectors?.flatMap((s) => s.Segments) || [];
-		const totalSegments = Math.max(seg1.length, seg2.length, 12);
+		// Sector times by mode
+		const s1SectorValues = mode === "last"
+			? [
+				t1.Sectors?.[0]?.Value || t1.Sectors?.[0]?.PreviousValue,
+				t1.Sectors?.[1]?.Value || t1.Sectors?.[1]?.PreviousValue,
+				t1.Sectors?.[2]?.Value || t1.Sectors?.[2]?.PreviousValue,
+			]
+			: [
+				stats1?.BestSectors?.[0]?.Value || t1.Sectors?.[0]?.Value,
+				stats1?.BestSectors?.[1]?.Value || t1.Sectors?.[1]?.Value,
+				stats1?.BestSectors?.[2]?.Value || t1.Sectors?.[2]?.Value,
+			];
+
+		const s2SectorValues = mode === "last"
+			? [
+				t2.Sectors?.[0]?.Value || t2.Sectors?.[0]?.PreviousValue,
+				t2.Sectors?.[1]?.Value || t2.Sectors?.[1]?.PreviousValue,
+				t2.Sectors?.[2]?.Value || t2.Sectors?.[2]?.PreviousValue,
+			]
+			: [
+				stats2?.BestSectors?.[0]?.Value || t2.Sectors?.[0]?.Value,
+				stats2?.BestSectors?.[1]?.Value || t2.Sectors?.[1]?.Value,
+				stats2?.BestSectors?.[2]?.Value || t2.Sectors?.[2]?.Value,
+			];
+
+		// Minisector segments by mode
+		const seg1 = mode === "last"
+			? (t1.Sectors?.flatMap((s) => s.Segments || []) || [])
+			: (bestLapSegments?.[id1]?.flatMap((s) => s) || []);
+
+		const seg2 = mode === "last"
+			? (t2.Sectors?.flatMap((s) => s.Segments || []) || [])
+			: (bestLapSegments?.[id2]?.flatMap((s) => s) || []);
+
+		const baseCount = Math.max(
+			t1.Sectors?.flatMap((s) => s.Segments || []).length || 0,
+			t2.Sectors?.flatMap((s) => s.Segments || []).length || 0,
+			seg1.length,
+			seg2.length,
+			11
+		);
+		const totalSegments = baseCount;
 
 		let d1Wins = 0;
 		let d2Wins = 0;
@@ -267,6 +328,23 @@ export default function Map({ filter }: Props) {
 
 			if (slicePoints.length < 2) continue;
 
+			// Determine which sector (0, 1, or 2) this slice belongs to
+			let sectorIdx = 0;
+			const refSectors = (t1.Sectors && t1.Sectors.length === 3) ? t1.Sectors : t2.Sectors;
+			if (refSectors && refSectors.length === 3) {
+				let accumulated = 0;
+				for (let s = 0; s < 3; s++) {
+					accumulated += (refSectors[s]?.Segments?.length || 0);
+					if (i < accumulated) {
+						sectorIdx = s;
+						break;
+					}
+					if (s === 2) sectorIdx = 2;
+				}
+			} else {
+				sectorIdx = Math.min(Math.floor(i / (totalSegments / 3)), 2);
+			}
+
 			const s1Status = seg1[i]?.Status || 0;
 			const s2Status = seg2[i]?.Status || 0;
 
@@ -276,17 +354,40 @@ export default function Map({ filter }: Props) {
 				winner = 1;
 			} else if (s2Status === 2051 && s1Status !== 2051) {
 				winner = 2;
-			} else if (s1Status === 2049 && s2Status !== 2049) {
+			} else if (s1Status === 2049 && (s2Status === 2048 || s2Status === 2052 || s2Status === 0 || !s2Status)) {
 				winner = 1;
-			} else if (s2Status === 2049 && s1Status !== 2049) {
+			} else if (s2Status === 2049 && (s1Status === 2048 || s1Status === 2052 || s1Status === 0 || !s1Status)) {
 				winner = 2;
 			} else {
 				// Sector comparison fallback
-				const sectorIdx = Math.min(Math.floor(i / (totalSegments / 3)), 2);
-				const v1 = parseTimeToSeconds(t1.Sectors?.[sectorIdx]?.Value || t1.Sectors?.[sectorIdx]?.PreviousValue);
-				const v2 = parseTimeToSeconds(t2.Sectors?.[sectorIdx]?.Value || t2.Sectors?.[sectorIdx]?.PreviousValue);
+				const v1 = parseTimeToSeconds(s1SectorValues[sectorIdx]);
+				const v2 = parseTimeToSeconds(s2SectorValues[sectorIdx]);
+
 				if (v1 !== null && v2 !== null) {
-					winner = v1 < v2 ? 1 : v2 < v1 ? 2 : "tie";
+					if (Math.abs(v1 - v2) > 0.0005) {
+						winner = v1 < v2 ? 1 : 2;
+					} else {
+						winner = "tie";
+					}
+				} else if (v1 !== null) {
+					winner = 1;
+				} else if (v2 !== null) {
+					winner = 2;
+				} else {
+					// Fallback to lap time comparison
+					const lap1Time = mode === "last"
+						? (t1.LastLapTime?.Value || t1.BestLapTime?.Value)
+						: (t1.BestLapTime?.Value || stats1?.PersonalBestLapTime?.Value || t1.LastLapTime?.Value);
+					const lap2Time = mode === "last"
+						? (t2.LastLapTime?.Value || t2.BestLapTime?.Value)
+						: (t2.BestLapTime?.Value || stats2?.PersonalBestLapTime?.Value || t2.LastLapTime?.Value);
+					const lap1Sec = parseTimeToSeconds(lap1Time);
+					const lap2Sec = parseTimeToSeconds(lap2Time);
+					if (lap1Sec !== null && lap2Sec !== null && Math.abs(lap1Sec - lap2Sec) > 0.0005) {
+						winner = lap1Sec < lap2Sec ? 1 : 2;
+					} else {
+						winner = "tie";
+					}
 				}
 			}
 
@@ -305,6 +406,7 @@ export default function Map({ filter }: Props) {
 		}
 
 		return {
+			mode,
 			d1,
 			d2,
 			color1,
@@ -315,7 +417,7 @@ export default function Map({ filter }: Props) {
 			totalSegments,
 			segmentSlices,
 		};
-	}, [favoriteDrivers, drivers, timingDrivers, points]);
+	}, [favoriteDrivers, drivers, timingDrivers, timingStats, bestLapSegments, comparisonMode, points]);
 
 	if (!points || minX === null || minY === null || widthX === null || widthY === null) {
 		return (
@@ -325,6 +427,8 @@ export default function Map({ filter }: Props) {
 		);
 	}
 
+	const sectorSplitIndices = sectors[0]?.splitIndices || [190, 433];
+
 	return (
 		<div className="flex flex-col w-full h-full">
 			{/* Minisector Dominance Legend directly on general background above the map */}
@@ -332,7 +436,9 @@ export default function Map({ filter }: Props) {
 				<div className="flex flex-wrap items-center justify-between gap-2 px-3 pt-1.5 pb-1 text-xs font-mono select-none">
 					<div className="flex items-center gap-1.5 text-cyan-400 font-bold text-[11px] uppercase tracking-wider">
 						<Zap className="w-3.5 h-3.5 text-cyan-400" />
-						<span>Minisectores en pista:</span>
+						<span>
+							{comparisonData.mode === "best" ? "Minisectores en pista (PB):" : "Minisectores en pista (Última):"}
+						</span>
 					</div>
 
 					<div className="flex items-center gap-2.5 text-xs">
@@ -401,6 +507,23 @@ export default function Map({ filter }: Props) {
 						})
 					)}
 
+					{/* Intermediate Timing Lines (I1 & I2) */}
+					{timingSplits.map((split) => (
+						<g key={`timing.split.${split.name}`}>
+							<line
+								x1={split.pos.x}
+								y1={split.pos.y - 120}
+								x2={split.pos.x}
+								y2={split.pos.y + 120}
+								stroke="#06B6D4"
+								strokeWidth={40}
+								strokeDasharray="25 20"
+								strokeLinecap="round"
+								transform={`rotate(${split.angle + 90}, ${split.pos.x}, ${split.pos.y})`}
+							/>
+						</g>
+					))}
+
 					{/* Start / Finish line */}
 					{finishLine && (
 						<line
@@ -414,6 +537,18 @@ export default function Map({ filter }: Props) {
 							transform={`rotate(${finishLine.startAngle + 90}, ${finishLine.x}, ${finishLine.y})`}
 						/>
 					)}
+
+					{/* Sector Badges 1, 2, and 3 */}
+					{showSectorNumbers &&
+						sectors.map((sector) => (
+							<SectorBadge
+								key={`sector.badge.${sector.number}`}
+								number={sector.number}
+								x={sector.labelPos.x}
+								y={sector.labelPos.y}
+								isYellow={yellowSectors.has(sector.number)}
+							/>
+						))}
 
 					{/* Corner Numbers */}
 					{showCornerNumbers &&
@@ -439,7 +574,7 @@ export default function Map({ filter }: Props) {
 										: false;
 									const pit = timingDriver ? timingDriver.InPit : false;
 
-									const driverPosition = getDriverPosition(timingDriver, originalTrackPoints);
+									const driverPosition = getDriverPosition(timingDriver, originalTrackPoints, sectorSplitIndices);
 
 									// Skip rendering if we can't determine position
 									if (!driverPosition) return null;
@@ -470,6 +605,73 @@ export default function Map({ filter }: Props) {
 		</div>
 	);
 }
+
+type SectorBadgeProps = {
+	number: number;
+	x: number;
+	y: number;
+	isYellow?: boolean;
+};
+
+const SectorBadge: React.FC<SectorBadgeProps> = ({ number, x, y, isYellow }) => {
+	const strokeColor = isYellow ? "#EAB308" : "#06B6D4";
+	const glowColor = isYellow ? "rgba(234, 179, 8, 0.45)" : "rgba(6, 182, 212, 0.35)";
+
+	return (
+		<g className="cursor-default select-none pointer-events-none transition-all duration-300">
+			{/* Ambient Glow */}
+			<circle
+				cx={x}
+				cy={y}
+				r={280}
+				fill="none"
+				stroke={glowColor}
+				strokeWidth={40}
+				className="opacity-60"
+			/>
+
+			{/* Main Badge Container */}
+			<circle
+				cx={x}
+				cy={y}
+				r={230}
+				fill="#0B1120"
+				stroke={strokeColor}
+				strokeWidth={20}
+				className={isYellow ? "animate-pulse" : ""}
+			/>
+
+			{/* Sub-label "SECTOR" */}
+			<text
+				x={x}
+				y={y - 55}
+				fill={isYellow ? "#FDE047" : "#94A3B8"}
+				fontSize={75}
+				fontWeight="bold"
+				letterSpacing="3"
+				textAnchor="middle"
+				dominantBaseline="middle"
+				className="font-mono"
+			>
+				SECTOR
+			</text>
+
+			{/* Big Bold Sector Numeral 1, 2, 3 */}
+			<text
+				x={x}
+				y={y + 65}
+				fill={isYellow ? "#FEF08A" : "#FFFFFF"}
+				fontSize={200}
+				fontWeight="900"
+				textAnchor="middle"
+				dominantBaseline="middle"
+				className="font-mono"
+			>
+				{number}
+			</text>
+		</g>
+	);
+};
 
 type CornerNumberProps = {
 	number: number;
@@ -518,7 +720,8 @@ const CarDot = ({ pos, name, color, favoriteDriver, pit, hidden, rotation, cente
 
 	return (
 		<g
-			className={clsx({ "opacity-30": pit }, { "opacity-0!": hidden })}
+			translate="no"
+			className={clsx("notranslate", { "opacity-30": pit }, { "opacity-0!": hidden })}
 			style={{
 				transition: "all 1s linear",
 				transform,
@@ -539,6 +742,8 @@ const CarDot = ({ pos, name, color, favoriteDriver, pit, hidden, rotation, cente
 			<circle id="map.driver.circle" r={radius} />
 			<text
 				id="map.driver.text"
+				translate="no"
+				className="notranslate"
 				fontWeight="bold"
 				fontSize={fontSize}
 				style={{

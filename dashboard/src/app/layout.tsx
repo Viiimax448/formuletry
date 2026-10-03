@@ -28,8 +28,10 @@ export default function RootLayout({ children }: Props) {
 	};
 
 	return (
-		<html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} font-sans text-white`}>
+		<html lang="es" translate="no" className={`${GeistSans.variable} ${GeistMono.variable} font-sans text-white notranslate`}>
 			<head>
+				<meta name="google" content="notranslate" />
+				<meta name="googlebot" content="notranslate" />
 				<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
 				<EnvScript />
 
@@ -83,7 +85,7 @@ export default function RootLayout({ children }: Props) {
 				)}
 			</head>
 
-			<body className="bg-[#111827] min-h-screen">
+			<body className="bg-[#111827] min-h-screen notranslate" translate="no">
 				<OledModeProvider>{children}</OledModeProvider>			<CookieBanner />			</body>
 		</html>
 	);

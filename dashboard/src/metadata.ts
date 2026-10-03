@@ -52,4 +52,7 @@ export const metadata: Metadata = {
 		statusBarStyle: "default",
 		title: "Formuletry",
 	},
+	other: {
+		google: "notranslate",
+	},
 };

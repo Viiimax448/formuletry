@@ -17,7 +17,8 @@ type Props = {
 };
 
 export default function DriverComparison({ onClose }: Props) {
-	const [mode, setMode] = useState<"last" | "best">("last");
+	const mode = useSettingsStore((state) => state.comparisonMode);
+	const setMode = useSettingsStore((state) => state.setComparisonMode);
 
 	const favoriteDrivers = useSettingsStore((state) => state.favoriteDrivers);
 	const setFavoriteDrivers = useSettingsStore((state) => state.setFavoriteDrivers);
@@ -342,7 +343,7 @@ function CleanDriverCard({
 							className="w-2 h-2 rounded-full shrink-0"
 							style={{ backgroundColor: teamColor }}
 						/>
-						<h4 className="font-extrabold text-[12.5px] sm:text-[13.5px] text-white tracking-wide uppercase truncate font-sans">
+						<h4 translate="no" className="font-extrabold text-[12.5px] sm:text-[13.5px] text-white tracking-wide uppercase truncate font-sans notranslate">
 							{driver.FullName || driver.BroadcastName}
 						</h4>
 					</div>

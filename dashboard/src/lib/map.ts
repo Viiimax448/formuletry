@@ -43,11 +43,23 @@ export type MapSector = {
 	start: TrackPosition;
 	end: TrackPosition;
 	points: TrackPosition[];
+	splitIndices?: [number, number];
+};
+
+export type TimingSplitLine = {
+	name: string;
+	pos: TrackPosition;
+	labelPos: TrackPosition;
+	angle: number;
 };
 
 export const createSectors = (map: Map): MapSector[] => {
 	const sectors: MapSector[] = [];
 	const points: TrackPosition[] = map.x.map((x, index) => ({ x, y: map.y[index] }));
+	const totalPoints = points.length;
+
+	const split1 = Math.floor(totalPoints * 0.33);
+	const split2 = Math.floor(totalPoints * 0.66);
 
 	for (let i = 0; i < map.marshalSectors.length; i++) {
 		sectors.push({
@@ -55,6 +67,7 @@ export const createSectors = (map: Map): MapSector[] => {
 			start: map.marshalSectors[i].trackPosition,
 			end: map.marshalSectors[i + 1] ? map.marshalSectors[i + 1].trackPosition : map.marshalSectors[0].trackPosition,
 			points: [],
+			splitIndices: [split1, split2],
 		});
 	}
 
@@ -70,6 +83,39 @@ export const createSectors = (map: Map): MapSector[] => {
 	}
 
 	return sectors;
+};
+
+export const createTimingSplits = (map: Map, sectors: MapSector[]): TimingSplitLine[] => {
+	const points: TrackPosition[] = map.x.map((x, index) => ({ x, y: map.y[index] }));
+	const totalPoints = points.length;
+	if (totalPoints === 0) return [];
+
+	const splits: TimingSplitLine[] = [];
+
+	const s1Idx = Math.floor(totalPoints * 0.33);
+	const s2Idx = Math.floor(totalPoints * 0.66);
+
+	const splitDefs = [
+		{ name: "I1", idx: s1Idx },
+		{ name: "I2", idx: s2Idx },
+	];
+
+	for (const split of splitDefs) {
+		const p = points[split.idx];
+		const nextP = points[(split.idx + 1) % totalPoints];
+		const dx = nextP.x - p.x;
+		const dy = nextP.y - p.y;
+		const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+		splits.push({
+			name: split.name,
+			pos: { x: p.x, y: p.y },
+			labelPos: { x: p.x, y: p.y },
+			angle,
+		});
+	}
+
+	return splits;
 };
 
 export const findYellowSectors = (messages: Message[] | undefined): Set<number> => {

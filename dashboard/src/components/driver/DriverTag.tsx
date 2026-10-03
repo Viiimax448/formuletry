@@ -44,13 +44,14 @@ export default function DriverTag({ position, teamColor, short, className, showI
 				</div>
 			)}
 			<div 
-				className="flex items-center gap-1.5 px-2 rounded-r h-7 transition-colors group-hover/tag:brightness-125"
+				translate="no"
+				className="flex items-center gap-1.5 px-2 rounded-r h-7 transition-colors group-hover/tag:brightness-125 notranslate"
 				style={{ 
 					backgroundColor: nameBgColor, 
 					color: nameTextColor,
 				}}
 			>
-				<span className="font-mono text-[13px] font-bold leading-none tracking-tight select-none">
+				<span translate="no" className="font-mono text-[13px] font-bold leading-none tracking-tight select-none notranslate">
 					{short}
 				</span>
 				{showIcon && (

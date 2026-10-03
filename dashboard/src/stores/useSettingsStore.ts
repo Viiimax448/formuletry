@@ -49,6 +49,9 @@ type SettingsStore = {
 
 	circuitOverride: "auto" | "sepang" | "bahrain";
 	setCircuitOverride: (circuitOverride: "auto" | "sepang" | "bahrain") => void;
+
+	comparisonMode: "last" | "best";
+	setComparisonMode: (comparisonMode: "last" | "best") => void;
 };
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -100,6 +103,9 @@ export const useSettingsStore = create<SettingsStore>()(
 
 				circuitOverride: "auto",
 				setCircuitOverride: (circuitOverride: "auto" | "sepang" | "bahrain") => set({ circuitOverride }),
+
+				comparisonMode: "last",
+				setComparisonMode: (comparisonMode: "last" | "best") => set({ comparisonMode }),
 			}),
 			{
 				name: "settings-storage",
