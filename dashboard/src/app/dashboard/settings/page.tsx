@@ -32,6 +32,11 @@ export default function SettingsPage() {
 			</div>
 
 			<div className="flex gap-2">
+				<Toggle enabled={settings.showSectorNumbers} setEnabled={(v) => settings.setShowSectorNumbers(v)} />
+				<p className="text-zinc-500">Show Sector Badges (1, 2, 3) on Track Map</p>
+			</div>
+
+			<div className="flex gap-2">
 				<Toggle enabled={settings.tableHeaders} setEnabled={(v) => settings.setTableHeaders(v)} />
 				<p className="text-zinc-500">Show Driver Table Header</p>
 			</div>

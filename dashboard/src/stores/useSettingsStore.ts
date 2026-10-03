@@ -13,6 +13,9 @@ type SettingsStore = {
 	showCornerNumbers: boolean;
 	setShowCornerNumbers: (showCornerNumbers: boolean) => void;
 
+	showSectorNumbers: boolean;
+	setShowSectorNumbers: (showSectorNumbers: boolean) => void;
+
 	carMetrics: boolean;
 	setCarMetrics: (carMetrics: boolean) => void;
 
@@ -66,6 +69,9 @@ export const useSettingsStore = create<SettingsStore>()(
 
 				showCornerNumbers: false,
 				setShowCornerNumbers: (showCornerNumbers: boolean) => set({ showCornerNumbers }),
+
+				showSectorNumbers: true,
+				setShowSectorNumbers: (showSectorNumbers: boolean) => set({ showSectorNumbers }),
 
 				carMetrics: false,
 				setCarMetrics: (carMetrics: boolean) => set({ carMetrics }),

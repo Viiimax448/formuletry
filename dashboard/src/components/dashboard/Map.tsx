@@ -720,7 +720,6 @@ const CarDot = ({ pos, name, color, favoriteDriver, pit, hidden, rotation, cente
 
 	return (
 		<g
-			translate="no"
 			className={clsx("notranslate", { "opacity-30": pit }, { "opacity-0!": hidden })}
 			style={{
 				transition: "all 1s linear",
@@ -742,7 +741,6 @@ const CarDot = ({ pos, name, color, favoriteDriver, pit, hidden, rotation, cente
 			<circle id="map.driver.circle" r={radius} />
 			<text
 				id="map.driver.text"
-				translate="no"
 				className="notranslate"
 				fontWeight="bold"
 				fontSize={fontSize}

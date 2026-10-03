@@ -42,6 +42,7 @@ export type MapSector = {
 	number: number;
 	start: TrackPosition;
 	end: TrackPosition;
+	labelPos: TrackPosition;
 	points: TrackPosition[];
 	splitIndices?: [number, number];
 };
@@ -62,10 +63,12 @@ export const createSectors = (map: Map): MapSector[] => {
 	const split2 = Math.floor(totalPoints * 0.66);
 
 	for (let i = 0; i < map.marshalSectors.length; i++) {
+		const startPos = map.marshalSectors[i].trackPosition;
 		sectors.push({
 			number: i + 1,
-			start: map.marshalSectors[i].trackPosition,
+			start: startPos,
 			end: map.marshalSectors[i + 1] ? map.marshalSectors[i + 1].trackPosition : map.marshalSectors[0].trackPosition,
+			labelPos: { x: startPos.x, y: startPos.y },
 			points: [],
 			splitIndices: [split1, split2],
 		});
@@ -79,6 +82,10 @@ export const createSectors = (map: Map): MapSector[] => {
 			sectors[i].points = points.slice(start, end + 1);
 		} else {
 			sectors[i].points = points.slice(start).concat(points.slice(0, end + 1));
+		}
+		if (sectors[i].points.length > 0) {
+			const midIdx = Math.floor(sectors[i].points.length / 2);
+			sectors[i].labelPos = sectors[i].points[midIdx];
 		}
 	}
 
