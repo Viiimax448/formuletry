@@ -21,7 +21,7 @@ import {
 	rotate,
 } from "@/lib/map";
 
-const ROTATION_FIX = 0;
+const ROTATION_FIX = 90;
 
 // Function to calculate driver position based on their sector and segment progress
 function getDriverPosition(
@@ -110,7 +110,6 @@ type Props = {
 export default function Map({ filter }: Props) {
 	const showCornerNumbers = useSettingsStore((state) => state.showCornerNumbers);
 	const favoriteDrivers = useSettingsStore((state) => state.favoriteDrivers);
-	const circuitOverride = useSettingsStore((state) => state.circuitOverride);
 	const comparisonMode = useSettingsStore((state) => state.comparisonMode);
 
 	const drivers = useDataStore((state) => state?.state?.DriverList);
@@ -120,8 +119,6 @@ export default function Map({ filter }: Props) {
 	const bestLapSegments = useDataStore((state) => state.bestLapSegments);
 	const raceControlMessages = useDataStore((state) => state?.state?.RaceControlMessages?.Messages ?? undefined);
 	const circuitKey = useDataStore((state) => state?.state?.SessionInfo?.Meeting.Circuit.Key);
-	const circuitShortName = useDataStore((state) => state?.state?.SessionInfo?.Meeting.Circuit.ShortName);
-	const meetingName = useDataStore((state) => state?.state?.SessionInfo?.Meeting.Name);
 
 	const [[minX, minY, widthX, widthY], setBounds] = useState<(null | number)[]>([null, null, null, null]);
 	const [[centerX, centerY], setCenter] = useState<(null | number)[]>([null, null]);
@@ -137,15 +134,15 @@ export default function Map({ filter }: Props) {
 		let isMounted = true;
 
 		const updateMap = async () => {
-			const targetKey = circuitKey || circuitShortName || meetingName || 999;
-			const mapJson = await fetchMap(targetKey, circuitOverride);
+			if (!circuitKey) return;
+			const mapJson = await fetchMap(circuitKey);
 
 			if (!mapJson || !isMounted) return;
 
-			const centerX = (Math.max(...mapJson.x) + Math.min(...mapJson.x)) / 2;
-			const centerY = (Math.max(...mapJson.y) + Math.min(...mapJson.y)) / 2;
+			const centerX = (Math.max(...mapJson.x) - Math.min(...mapJson.x)) / 2;
+			const centerY = (Math.max(...mapJson.y) - Math.min(...mapJson.y)) / 2;
 
-			const fixedRotation = mapJson.rotation ? mapJson.rotation + ROTATION_FIX : 0;
+			const fixedRotation = mapJson.rotation + ROTATION_FIX;
 
 			const rawSectors = createSectors(mapJson);
 			const sectors = rawSectors.map((s) => ({
@@ -218,7 +215,7 @@ export default function Map({ filter }: Props) {
 			isMounted = false;
 			window.removeEventListener("resize", handleResize);
 		};
-	}, [circuitKey, circuitShortName, meetingName, circuitOverride]);
+	}, [circuitKey]);
 
 	const yellowSectors = useMemo(() => findYellowSectors(raceControlMessages), [raceControlMessages]);
 

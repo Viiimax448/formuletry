@@ -50,9 +50,6 @@ type SettingsStore = {
 	compactMode: boolean;
 	setCompactMode: (compactMode: boolean) => void;
 
-	circuitOverride: "auto" | "sepang" | "bahrain";
-	setCircuitOverride: (circuitOverride: "auto" | "sepang" | "bahrain") => void;
-
 	comparisonMode: "last" | "best";
 	setComparisonMode: (comparisonMode: "last" | "best") => void;
 };
@@ -106,9 +103,6 @@ export const useSettingsStore = create<SettingsStore>()(
 
 				compactMode: false,
 				setCompactMode: (compactMode: boolean) => set({ compactMode }),
-
-				circuitOverride: "auto",
-				setCircuitOverride: (circuitOverride: "auto" | "sepang" | "bahrain") => set({ circuitOverride }),
 
 				comparisonMode: "last",
 				setComparisonMode: (comparisonMode: "last" | "best") => set({ comparisonMode }),
