@@ -17,7 +17,7 @@ export default function DriverPosDiff({ gridPos, position, className }: Props) {
 	return (
 		<div
 			className={clsx(
-				"flex items-center justify-center w-5.5 shrink-0 select-none font-mono",
+				"flex items-center justify-center w-7 shrink-0 select-none font-mono",
 				className,
 			)}
 			title={

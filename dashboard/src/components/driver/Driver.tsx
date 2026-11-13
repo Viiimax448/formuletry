@@ -78,7 +78,7 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 			}}
 			className={clsx(
 				// Ultra-compact dense table row (~30-32px)
-				"flex flex-col gap-0 rounded-none px-1.5 py-0.5 mb-0 select-none cursor-pointer driver-row",
+				"flex flex-col gap-0 rounded-none pl-0 pr-1.5 py-0.5 mb-0 select-none cursor-pointer driver-row",
 				"border-0 border-b border-gray-800/60 w-fit min-w-full",
 				"hover:bg-gray-800/40 shadow-none backdrop-blur-none",
 				compactMode ? "h-auto min-h-[1.75rem]" : "h-auto",

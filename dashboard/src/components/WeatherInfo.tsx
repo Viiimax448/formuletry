@@ -137,9 +137,7 @@ export default function DataWeatherInfo() {
 				</button>
 			</div>
 
-			{isSettingsOpen && (
-				<SettingsModal onClose={() => setIsSettingsOpen(false)} />
-			)}
+			<SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 		</div>
 	);
 }

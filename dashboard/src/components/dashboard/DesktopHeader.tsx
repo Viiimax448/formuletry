@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { utc, duration } from "moment";
-import { Settings } from "lucide-react";
-import clsx from "clsx";
+import { Settings, Tv, AlertTriangle, ShieldAlert, Sun, CloudRain } from "lucide-react";
+import { motion } from "motion/react";
 
 import { useDataStore } from "@/stores/useDataStore";
 import { useSettingsStore } from "@/stores/useSettingsStore";
@@ -12,49 +12,11 @@ import { getWindDirection } from "@/lib/getWindDirection";
 
 import Flag from "@/components/Flag";
 import SettingsModal from "@/components/dashboard/SettingsModal";
-
-// Icons matching MobileHeader & WeatherInfo
-const TrackTempIcon = () => (
-	<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
-		<path d="M8 2L14 8L8 14L2 8L8 2Z" stroke="currentColor" strokeWidth="1.5" fill="none" />
-	</svg>
-);
-
-const AirTempIcon = () => (
-	<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
-		<circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" fill="none" />
-		<path d="M8 4v8M4 8h8" stroke="currentColor" strokeWidth="1.5" />
-	</svg>
-);
-
-const HumidityIcon = () => (
-	<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
-		<path d="M8 2C6 4 4 6 4 9C4 11.2 5.8 13 8 13C10.2 13 12 11.2 12 9C12 6 10 4 8 2Z" stroke="currentColor" strokeWidth="1.5" fill="none" />
-	</svg>
-);
-
-const WindIcon = () => (
-	<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
-		<path d="M3 8H13M9 4L13 8L9 12" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-	</svg>
-);
-
-const RainIcon = () => (
-	<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-cyan-400">
-		<path d="M4 6C4 4.5 5 3 6.5 3C7.5 3 8.5 3.5 9 4.5C9.5 3.5 10.5 3 11.5 3C13 3 14 4.5 14 6C14 7 13.5 8 12.5 8H5.5C4.5 8 4 7 4 6Z" stroke="currentColor" strokeWidth="1.5" fill="none" />
-		<path d="M6 10L6.5 12M8 10L8.5 12M10 10L10.5 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-	</svg>
-);
-
-const ClearIcon = () => (
-	<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-amber-400">
-		<circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" fill="none" />
-		<path d="M8 1v2M8 13v2M15 8h-2M3 8H1M13.3 2.7l-1.4 1.4M4.1 11.9l-1.4 1.4M13.3 13.3l-1.4-1.4M4.1 4.1L2.7 2.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-	</svg>
-);
+import TvSyncModal from "@/components/dashboard/TvSyncModal";
 
 export default function DesktopHeader() {
 	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+	const [isTvSyncOpen, setIsTvSyncOpen] = useState(false);
 
 	const clock = useDataStore((state) => state.state?.ExtrapolatedClock);
 	const session = useDataStore((state) => state.state?.SessionInfo);
@@ -63,6 +25,7 @@ export default function DesktopHeader() {
 	const lapCount = useDataStore((state) => state.state?.LapCount);
 	const track = useDataStore((state) => state.state?.TrackStatus);
 	const delay = useSettingsStore((state) => state.delay);
+	const delayIsPaused = useSettingsStore((state) => state.delayIsPaused);
 
 	const timeRemaining =
 		!!clock && !!clock.Remaining
@@ -75,145 +38,231 @@ export default function DesktopHeader() {
 				: clock.Remaining
 			: undefined;
 
-	const currentTrackStatus = getTrackStatusMessage(track?.Status ? parseInt(track?.Status) : undefined);
+	const statusCode = track?.Status ? parseInt(track.Status) : undefined;
+	const currentTrackStatus = getTrackStatusMessage(statusCode);
 
-	const getDotColor = (statusCode: number | undefined) => {
-		switch (statusCode) {
-			case 1:
-				return "#10B981";
-			case 2:
-			case 3:
-			case 4:
-			case 6:
-			case 7:
-				return "#F59E0B";
-			case 5:
-				return "#EF4444";
-			default:
-				return "#10B981";
-		}
-	};
+	const isYellowFlag = statusCode === 2 || statusCode === 3 || statusCode === 6 || statusCode === 7;
+	const isSafetyCar = statusCode === 4;
+	const isRedFlag = statusCode === 5;
+	const isWarning = isYellowFlag || isSafetyCar || isRedFlag;
 
-	const trackColor = getDotColor(track?.Status ? parseInt(track?.Status) : undefined);
 	const trackTemp = weather ? Math.round(parseFloat(weather.TrackTemp)) : null;
 	const airTemp = weather ? Math.round(parseFloat(weather.AirTemp)) : null;
 	const humidity = weather ? parseFloat(weather.Humidity) : null;
 	const windSpeed = weather ? parseFloat(weather.WindSpeed) : null;
-	const windDirection = weather?.WindDirection ? getWindDirection(parseInt(weather.WindDirection)) : "";
+	const windDegrees = weather?.WindDirection ? parseFloat(weather.WindDirection) : 0;
+	const windCardinal = !isNaN(windDegrees) ? getWindDirection(windDegrees) : "";
 	const isRaining = weather?.Rainfall === "1";
 
+	const currentLap = lapCount?.CurrentLap ? Number(lapCount.CurrentLap) : 0;
+	const totalLaps = lapCount?.TotalLaps ? Number(lapCount.TotalLaps) : 0;
+	const lapProgress = totalLaps > 0 ? Math.min(100, Math.max(0, (currentLap / totalLaps) * 100)) : 0;
+
 	return (
-		<div className="hidden w-full items-center justify-between overflow-hidden rounded-lg bg-[#111827] border border-gray-600/30 px-4 py-2.5 shadow-lg md:flex gap-4">
-			{/* Left: Country Flag + Meeting Name + Session & Clock */}
+		<div className="hidden w-full items-center justify-between overflow-hidden rounded-lg bg-[#151D2C] border border-gray-800/90 px-4 py-2.5 shadow-md md:flex gap-4">
+			{/* Izquierda: Bandera + GP Name + Sesión & Reloj */}
 			<div className="flex items-center gap-3 shrink-0 min-w-0">
 				<Flag
 					countryCode={session?.Meeting.Country.Code}
-					className="h-8 w-12 rounded shadow-sm border border-neutral-700/50 shrink-0"
+					className="h-7 w-11 rounded-md object-cover border border-white/10 shrink-0"
 				/>
 				<div className="flex flex-col justify-center min-w-0">
-					<h1 className="truncate text-xs font-semibold text-gray-200">
+					<h1 className="truncate text-xs font-bold text-white tracking-tight leading-tight">
 						{session?.Meeting.Name ?? "Formula 1 Grand Prix"}
 					</h1>
-					<div className="flex items-center gap-2">
-						<span className="text-xs font-medium text-gray-400">
-							{session?.Name ?? "Session"}
+					<div className="flex items-center gap-1.5 mt-0.5 text-xs text-white/50">
+						<span className="font-medium text-white/70">
+							{session?.Name ?? "Carrera"}
 							{timingData?.SessionPart ? ` ${timingData.SessionPart}` : ""}
 						</span>
-						<span className="text-gray-600">•</span>
-						<span className="font-mono text-base font-black text-white">
+						<span className="text-white/20">•</span>
+						<span className="font-mono text-white/90 font-medium tabular-nums">
 							{timeRemaining ?? "--:--:--"}
 						</span>
 					</div>
 				</div>
 			</div>
 
-			{/* Center: Weather Telemetry Strip (Matching Mobile single-line design) */}
-			<div className="hidden lg:flex items-center gap-2.5 bg-white/[0.03] border border-white/5 rounded-lg px-3 py-1.5 text-xs whitespace-nowrap">
-				{/* Track Temp */}
-				<div className="flex items-center gap-1.5">
-					<TrackTempIcon />
-					<span className="text-gray-400 font-medium">Pista</span>
-					<span className="font-mono font-semibold text-white">{trackTemp !== null ? `${trackTemp}°C` : "--"}</span>
-				</div>
-
-				<span className="text-gray-700">•</span>
-
-				{/* Air Temp */}
-				<div className="flex items-center gap-1.5">
-					<AirTempIcon />
-					<span className="text-gray-400 font-medium">Aire</span>
-					<span className="font-mono font-semibold text-white">{airTemp !== null ? `${airTemp}°C` : "--"}</span>
-				</div>
-
-				<span className="text-gray-700">•</span>
-
-				{/* Humidity */}
-				<div className="flex items-center gap-1.5">
-					<HumidityIcon />
-					<span className="text-gray-400 font-medium">Hum</span>
-					<span className="font-mono font-semibold text-white">{humidity !== null ? `${humidity}%` : "--"}</span>
-				</div>
-
-				<span className="text-gray-700">•</span>
-
-				{/* Wind */}
-				<div className="flex items-center gap-1.5">
-					<WindIcon />
-					<span className="text-gray-400 font-medium">Viento</span>
-					<span className="font-mono font-semibold text-white">
-						{windSpeed !== null ? `${windDirection} ${windSpeed}m/s` : "--"}
+			{/* Centro: Strip de Telemetría Climática con Brújula Dinámica */}
+			<div className="hidden lg:flex items-center gap-3 bg-white/[0.03] border border-white/[0.06] rounded-md px-3 py-1.5 text-xs whitespace-nowrap text-white/70">
+				{/* Pista */}
+				<div className="flex items-center gap-1">
+					<span className="text-[10px] uppercase font-medium text-white/40">Pista</span>
+					<span className="font-mono font-medium text-white tabular-nums">
+						{trackTemp !== null ? `${trackTemp}°` : "--"}
 					</span>
 				</div>
 
-				<span className="text-gray-700">•</span>
+				<span className="text-white/15">•</span>
 
-				{/* Rain / Clear Status */}
-				<div className="flex items-center gap-1.5">
-					{isRaining ? <RainIcon /> : <ClearIcon />}
-					<span className="font-medium text-gray-300">{isRaining ? "Lluvia" : "Despejado"}</span>
+				{/* Aire */}
+				<div className="flex items-center gap-1">
+					<span className="text-[10px] uppercase font-medium text-white/40">Aire</span>
+					<span className="font-mono font-medium text-white tabular-nums">
+						{airTemp !== null ? `${airTemp}°` : "--"}
+					</span>
 				</div>
 
-				{/* Settings Button */}
-				<button
-					onClick={() => setIsSettingsOpen(true)}
-					className="p-1 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white ml-0.5"
-					title="Ajustes"
+				<span className="text-white/15">•</span>
+
+				{/* Humedad */}
+				<div className="flex items-center gap-1">
+					<span className="text-[10px] uppercase font-medium text-white/40">Hum</span>
+					<span className="font-mono font-medium text-white tabular-nums">
+						{humidity !== null ? `${humidity}%` : "--"}
+					</span>
+				</div>
+
+				<span className="text-white/15">•</span>
+
+				{/* Viento Dinámico */}
+				<div
+					className="flex items-center gap-1"
+					title={`Viento: ${windSpeed ?? "--"} m/s (${Math.round(windDegrees)}° ${windCardinal})`}
 				>
-					<Settings className="w-3.5 h-3.5" />
-				</button>
-			</div>
-
-			{/* Right: Track Status & Lap Counter */}
-			<div className="flex items-center gap-4 shrink-0">
-				{/* Track Status */}
-				<div className="flex items-center gap-2">
-					<div
-						className="w-2.5 h-2.5 rounded-full"
-						style={{
-							backgroundColor: trackColor,
-							boxShadow: `0 0 8px ${trackColor}60`,
-						}}
-					/>
-					<span
-						className="text-xs font-bold font-mono uppercase tracking-wide"
-						style={{ color: trackColor }}
+					<svg
+						width="11"
+						height="11"
+						viewBox="0 0 24 24"
+						fill="none"
+						xmlns="http://www.w3.org/2000/svg"
+						className="text-white/50 transition-transform duration-500 ease-out shrink-0"
+						style={{ transform: `rotate(${windDegrees}deg)` }}
 					>
-						{currentTrackStatus?.message ?? "ALL CLEAR"}
+						<path d="M12 2L19 21L12 17L5 21L12 2Z" fill="currentColor" />
+					</svg>
+					<span className="font-mono font-medium text-white tabular-nums">
+						{windSpeed !== null ? `${windSpeed}m/s` : "--"}
 					</span>
+					{windCardinal && (
+						<span className="text-[9.5px] font-mono text-white/40 uppercase">
+							{windCardinal}
+						</span>
+					)}
 				</div>
 
-				<span className="text-gray-700">|</span>
+				<span className="text-white/15">•</span>
 
-				{/* Lap Counter */}
-				<div className="flex flex-col items-end">
-					<span className="text-[10px] font-semibold text-gray-400 tracking-wider uppercase">VUELTAS</span>
-					<span className="font-mono text-base font-black text-white leading-tight">
-						{lapCount?.CurrentLap ?? 0} <span className="text-xs text-gray-400 font-medium">/ {lapCount?.TotalLaps ?? 0}</span>
-					</span>
+				{/* Estado de Cielo */}
+				<div className="flex items-center gap-1 text-white/60">
+					{isRaining ? (
+						<>
+							<CloudRain className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+							<span className="text-cyan-300 font-medium text-[11px]">Lluvia</span>
+						</>
+					) : (
+						<>
+							<Sun className="w-3.5 h-3.5 text-amber-400/80 shrink-0" />
+							<span className="text-white/70 font-medium text-[11px]">Despejado</span>
+						</>
+					)}
 				</div>
 			</div>
 
-			{isSettingsOpen && <SettingsModal onClose={() => setIsSettingsOpen(false)} />}
+			{/* Derecha: Track Status + Vueltas con Barra + Cápsula Unificada */}
+			<div className="flex items-center gap-3 shrink-0">
+				{/* Track Status */}
+				{isWarning ? (
+					<div
+						className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono font-bold uppercase transition-all border ${
+							isRedFlag
+								? "bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse"
+								: "bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse"
+						}`}
+					>
+						{isRedFlag ? (
+							<ShieldAlert className="w-3 h-3 text-rose-400 shrink-0" />
+						) : (
+							<AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
+						)}
+						<span>{currentTrackStatus?.message ?? "FLAG"}</span>
+					</div>
+				) : (
+					<div className="inline-flex items-center gap-1.5 font-mono font-medium text-emerald-400 text-xs">
+						<span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+						<span>Track Clear</span>
+					</div>
+				)}
+
+				<span className="text-white/15">|</span>
+
+				{/* Vueltas con Mini Barra de Progreso Integrada (ocupa todo el ancho del bloque) */}
+				<div className="flex flex-col">
+					<div className="flex items-baseline gap-1.5">
+						<span className="text-[9.5px] font-bold text-white/40 uppercase tracking-wider">
+							VUELTAS
+						</span>
+						<div className="flex items-baseline gap-1 font-mono leading-none">
+							<span className="text-sm font-bold text-white tabular-nums">
+								{currentLap}
+							</span>
+							<span className="text-[10.5px] font-medium text-white/40 tabular-nums">
+								/ {totalLaps}
+							</span>
+						</div>
+					</div>
+					{totalLaps > 0 && (
+						<div className="w-full h-1 bg-white/[0.08] rounded-full overflow-hidden mt-1">
+							<div
+								className="h-full bg-gradient-to-r from-red-600 to-[#FF453A] rounded-full transition-all duration-700 ease-out"
+								style={{ width: `${lapProgress}%` }}
+							/>
+						</div>
+					)}
+				</div>
+
+				<span className="text-white/15">|</span>
+
+				{/* Cápsula Unificada Segmentada (TV Sync + Ajustes) */}
+				<div className="inline-flex items-center rounded-md bg-white/[0.04] border border-white/[0.08] divide-x divide-white/[0.08] shadow-xs">
+					{/* Botón TV Sync */}
+					<motion.button
+						whileTap={{ scale: 0.96 }}
+						onClick={() => setIsTvSyncOpen(true)}
+						className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-medium transition-colors hover:bg-white/[0.06] ${
+							delayIsPaused
+								? "text-amber-300 animate-pulse"
+								: delay > 0
+									? "text-cyan-300"
+									: "text-white/70 hover:text-white"
+						}`}
+						title="Sincronizar telemetría con tu TV"
+					>
+						{delayIsPaused ? (
+							<>
+								<span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+								<span>PAUSA ({delay}s)</span>
+							</>
+						) : delay > 0 ? (
+							<>
+								<Tv className="w-3 h-3 text-cyan-400/90" />
+								<span>TV -{delay}s</span>
+							</>
+						) : (
+							<>
+								<span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+								<span>TV SYNC</span>
+							</>
+						)}
+					</motion.button>
+
+					{/* Botón Ajustes integrado */}
+					<motion.button
+						whileTap={{ scale: 0.94 }}
+						onClick={() => setIsSettingsOpen(true)}
+						className="px-2 py-1 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
+						title="Configuración"
+					>
+						<Settings className="w-3.5 h-3.5" />
+					</motion.button>
+				</div>
+			</div>
+
+			{/* Modal de Sincronización TV */}
+			<TvSyncModal isOpen={isTvSyncOpen} onClose={() => setIsTvSyncOpen(false)} />
+
+			{/* Modal de Configuración General */}
+			<SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 		</div>
 	);
 }

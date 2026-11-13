@@ -15,8 +15,8 @@ export default function DriverDRS({ inPit, pitOut }: Props) {
 			className={clsx(
 				"text-xs inline-flex h-7 w-full items-center justify-center rounded border font-mono font-bold leading-none",
 				{
-					"border-zinc-700 text-zinc-700": !pit,
-					"border-cyan-500 text-cyan-500 bg-cyan-500/10 shadow-[0_0_8px_rgba(6,182,212,0.25)]": pit,
+					"border-zinc-800 text-zinc-600": !pit,
+					"border-cyan-500/80 text-cyan-400 bg-cyan-500/10": pit,
 				},
 			)}
 		>

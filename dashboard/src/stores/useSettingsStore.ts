@@ -70,7 +70,7 @@ export const useSettingsStore = create<SettingsStore>()(
 				showSectorNumbers: true,
 				setShowSectorNumbers: (showSectorNumbers: boolean) => set({ showSectorNumbers }),
 
-				carMetrics: false,
+				carMetrics: true,
 				setCarMetrics: (carMetrics: boolean) => set({ carMetrics }),
 
 				tableHeaders: false,

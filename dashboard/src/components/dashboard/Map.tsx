@@ -117,6 +117,7 @@ export default function Map({ filter }: Props) {
 	const timingDrivers = useDataStore((state) => state?.state?.TimingData);
 	const timingStats = useDataStore((state) => state?.state?.TimingStats);
 	const bestLapSegments = useDataStore((state) => state.bestLapSegments);
+	const livePositions = useDataStore((state) => state.positions);
 	const raceControlMessages = useDataStore((state) => state?.state?.RaceControlMessages?.Messages ?? undefined);
 	const circuitKey = useDataStore((state) => state?.state?.SessionInfo?.Meeting.Circuit.Key);
 
@@ -529,7 +530,11 @@ export default function Map({ filter }: Props) {
 										: false;
 									const pit = timingDriver ? timingDriver.InPit : false;
 
-									const driverPosition = getDriverPosition(timingDriver, originalTrackPoints, sectorSplitIndices);
+									const livePos = livePositions ? livePositions[driver.RacingNumber] : null;
+									const driverPosition =
+										livePos && livePos.X !== undefined && livePos.Y !== undefined
+											? livePos
+											: getDriverPosition(timingDriver, originalTrackPoints, sectorSplitIndices);
 
 									// Skip rendering if we can't determine position
 									if (!driverPosition) return null;
@@ -610,7 +615,7 @@ const CarDot = ({ pos, name, color, favoriteDriver, pit, hidden, rotation, cente
 		<g
 			className={clsx("notranslate", { "opacity-30": pit }, { "opacity-0!": hidden })}
 			style={{
-				transition: "all 1s linear",
+				transition: "transform 180ms linear",
 				transform,
 				fill: fillColor,
 			}}

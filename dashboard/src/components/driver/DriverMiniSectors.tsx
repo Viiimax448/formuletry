@@ -34,24 +34,27 @@ export default function DriverMiniSectors({ sectors = [], bestSectors, className
 				const bestSectorValue = bestSector?.Value;
 				const isBestSectorOverallFastest = bestSector?.Position === 1;
 				const displayValue = sector.Value || sector.PreviousValue;
+				const hasSegments = sector.Segments && sector.Segments.length > 0;
 
-				// Si este sector individual no tiene ningún dato ni segmentos activos ni mejor sector, no mostrar nada
-				const hasSegmentData = sector.Segments?.some((seg) => seg.Status > 0);
-				if (!hasSectorValue && !hasSegmentData && !bestSectorValue) {
+				// Si este sector individual no tiene ningún dato, ni segmentos ni mejor sector, no mostrar nada
+				if (!hasSectorValue && !hasSegments && !bestSectorValue) {
 					return null;
 				}
 
 				return (
-					<div key={`sector.${i}`} className="flex flex-col justify-center gap-0.5 whitespace-nowrap">
-						{showMiniSectors && sector.Segments && sector.Segments.length > 0 && (
+					<div 
+						key={`sector.${i}`} 
+						className="flex flex-col justify-center gap-0.5 whitespace-nowrap min-w-[2.9rem]"
+					>
+						{showMiniSectors && hasSegments && (
 							<div className="flex flex-row gap-[1.5px] w-full mb-0.5 items-center">
-								{sector.Segments.map((segment, j) => (
+								{sector.Segments!.map((segment, j) => (
 									<MiniSector status={segment.Status} key={`sector.mini.${j}`} />
 								))}
 							</div>
 						)}
 
-						<div className="flex items-baseline gap-1">
+						<div className="flex items-baseline gap-1 min-h-[14px]">
 							{displayValue && (
 								<p
 									className={clsx(
@@ -91,7 +94,7 @@ export default function DriverMiniSectors({ sectors = [], bestSectors, className
 function MiniSector({ status }: { status: number }) {
 	return (
 		<div
-			className={clsx("flex-1 h-1 min-w-[2.5px] rounded-full transition-colors duration-150", {
+			className={clsx("flex-1 h-1 min-w-[8px] rounded-full transition-colors duration-150", {
 				"bg-amber-400": status === 2048 || status === 2052,
 				"bg-emerald-500": status === 2049,
 				"bg-violet-600": status === 2051,
