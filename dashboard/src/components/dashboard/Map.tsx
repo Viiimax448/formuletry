@@ -506,51 +506,34 @@ export default function Map({ filter }: Props) {
 					className="w-full h-full md:max-h-[82vh] lg:max-h-[88vh] object-contain"
 					xmlns="http://www.w3.org/2000/svg"
 				>
-					{/* CAPA 1: Asfalto base oscuro con volumen (Roadbed) */}
-					<g id="map-track-asphalt" opacity={0.95}>
-						{renderedSectors.map((sector) => (
-							<path
-								key={`asphalt.base.${sector.number}`}
-								stroke="#162032"
-								strokeWidth={175}
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								fill="transparent"
-								d={sector.d}
-							/>
-						))}
-						{/* Bordes exteriores sutiles del asfalto */}
+					{/* CAPA 1: Asfalto base oscuro con volumen y bordes notorios */}
+					<g id="map-track-asphalt">
+						{/* Bordes exteriores de pista (líneas de contorno claramente visibles) */}
 						{renderedSectors.map((sector) => (
 							<path
 								key={`asphalt.curb.${sector.number}`}
-								stroke="#223046"
+								stroke="#3E4C63"
 								strokeWidth={185}
 								strokeLinecap="round"
 								strokeLinejoin="round"
 								fill="transparent"
 								d={sector.d}
-								strokeDasharray="20 40"
-								opacity={0.35}
+								opacity={0.9}
+							/>
+						))}
+						{/* Cuerpo de asfalto oscuro */}
+						{renderedSectors.map((sector) => (
+							<path
+								key={`asphalt.base.${sector.number}`}
+								stroke="#172233"
+								strokeWidth={165}
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								fill="transparent"
+								d={sector.d}
 							/>
 						))}
 					</g>
-
-					{/* Líneas divisorias de sector (Intermediate Splits I1 e I2) */}
-					{sectorTimingData &&
-						sectorTimingData.splits.map((split, idx) => (
-							<g key={`split.line.${idx}`} transform={`rotate(${split.angle}, ${split.x}, ${split.y})`}>
-								<line
-									x1={split.x}
-									y1={split.y - 88}
-									x2={split.x}
-									y2={split.y + 88}
-									stroke="#64748B"
-									strokeWidth={35}
-									strokeDasharray="20 14"
-									strokeLinecap="round"
-								/>
-							</g>
-						))}
 
 					{/* CAPA 2: Línea de trazada / Racing line o Minisector Comparison Slices */}
 					{comparisonData && comparisonData.segmentSlices.length > 0 ? (
@@ -587,6 +570,34 @@ export default function Map({ filter }: Props) {
 							);
 						})
 					)}
+
+					{/* Líneas divisorias de sector en la pista (I1 e I2) - Renderizadas SOBRE la línea blanca */}
+					{sectorTimingData &&
+						sectorTimingData.splits.map((split, idx) => (
+							<g key={`split.line.${idx}`} transform={`rotate(${split.angle}, ${split.x}, ${split.y})`}>
+								{/* Corte oscuro para interrumpir limpiamente la trazada blanca */}
+								<line
+									x1={split.x}
+									y1={split.y - 105}
+									x2={split.x}
+									y2={split.y + 105}
+									stroke="#090E17"
+									strokeWidth={52}
+									strokeLinecap="round"
+								/>
+								{/* Línea divisoria luminosa transversal de cronometraje */}
+								<line
+									x1={split.x}
+									y1={split.y - 100}
+									x2={split.x}
+									y2={split.y + 100}
+									stroke="#E2E8F0"
+									strokeWidth={34}
+									strokeDasharray="22 14"
+									strokeLinecap="round"
+								/>
+							</g>
+						))}
 
 					{/* Start / Finish line estilo bandera a cuadros */}
 					{finishLine && (
