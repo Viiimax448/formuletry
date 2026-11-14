@@ -109,6 +109,7 @@ type Props = {
 
 export default function Map({ filter }: Props) {
 	const showCornerNumbers = useSettingsStore((state) => state.showCornerNumbers);
+	const showSectorNumbers = useSettingsStore((state) => state.showSectorNumbers);
 	const favoriteDrivers = useSettingsStore((state) => state.favoriteDrivers);
 	const comparisonMode = useSettingsStore((state) => state.comparisonMode);
 
@@ -230,12 +231,61 @@ export default function Map({ filter }: Props) {
 					color,
 					pulse: status?.pulse,
 					number: sector.number,
-					strokeWidth: 110,
+					strokeWidth: 65,
 					d: `M${sector.points[0].x},${sector.points[0].y} ${sector.points.map((point) => `L${point.x},${point.y}`).join(" ")}`,
 				};
 			})
 			.sort(prioritizeColoredSectors);
 	}, [trackStatus, sectors, yellowSectors]);
+
+	// Datos de cronometraje y geometría de sectores (S1, S2, S3 y cortes I1, I2)
+	const sectorTimingData = useMemo(() => {
+		if (!points || points.length === 0) return null;
+
+		const totalPoints = points.length;
+		const split1 = Math.floor(totalPoints * 0.33);
+		const split2 = Math.floor(totalPoints * 0.66);
+
+		const midS1Idx = Math.floor(split1 * 0.5);
+		const midS2Idx = Math.floor(split1 + (split2 - split1) * 0.5);
+		const midS3Idx = Math.floor(split2 + (totalPoints - split2) * 0.5);
+
+		const getBadgePos = (idx: number, label: string) => {
+			const p = points[idx];
+			const nextP = points[(idx + 3) % totalPoints];
+			const prevP = points[(idx - 3 + totalPoints) % totalPoints];
+			const dx = nextP.x - prevP.x;
+			const dy = nextP.y - prevP.y;
+			const len = Math.sqrt(dx * dx + dy * dy) || 1;
+			const nx = -dy / len;
+			const ny = dx / len;
+			const offset = 480;
+
+			return {
+				label,
+				x: Math.round(p.x + nx * offset),
+				y: Math.round(p.y + ny * offset),
+			};
+		};
+
+		const getSplitLine = (idx: number) => {
+			const p = points[idx];
+			const nextP = points[(idx + 1) % totalPoints];
+			const dx = nextP.x - p.x;
+			const dy = nextP.y - p.y;
+			const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+			return { x: p.x, y: p.y, angle: angle + 90 };
+		};
+
+		return {
+			splits: [getSplitLine(split1), getSplitLine(split2)],
+			badges: [
+				getBadgePos(midS1Idx, "S1"),
+				getBadgePos(midS2Idx, "S2"),
+				getBadgePos(midS3Idx, "S3"),
+			],
+		};
+	}, [points]);
 
 	// Minisector Dominance Comparison when 2 drivers are selected
 	const comparisonData = useMemo(() => {
@@ -456,13 +506,59 @@ export default function Map({ filter }: Props) {
 					className="w-full h-full md:max-h-[82vh] lg:max-h-[88vh] object-contain"
 					xmlns="http://www.w3.org/2000/svg"
 				>
-					{/* If 2 drivers selected, render the Minisector Comparison Slices */}
+					{/* CAPA 1: Asfalto base oscuro con volumen (Roadbed) */}
+					<g id="map-track-asphalt" opacity={0.95}>
+						{renderedSectors.map((sector) => (
+							<path
+								key={`asphalt.base.${sector.number}`}
+								stroke="#162032"
+								strokeWidth={175}
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								fill="transparent"
+								d={sector.d}
+							/>
+						))}
+						{/* Bordes exteriores sutiles del asfalto */}
+						{renderedSectors.map((sector) => (
+							<path
+								key={`asphalt.curb.${sector.number}`}
+								stroke="#223046"
+								strokeWidth={185}
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								fill="transparent"
+								d={sector.d}
+								strokeDasharray="20 40"
+								opacity={0.35}
+							/>
+						))}
+					</g>
+
+					{/* Líneas divisorias de sector (Intermediate Splits I1 e I2) */}
+					{sectorTimingData &&
+						sectorTimingData.splits.map((split, idx) => (
+							<g key={`split.line.${idx}`} transform={`rotate(${split.angle}, ${split.x}, ${split.y})`}>
+								<line
+									x1={split.x}
+									y1={split.y - 88}
+									x2={split.x}
+									y2={split.y + 88}
+									stroke="#64748B"
+									strokeWidth={35}
+									strokeDasharray="20 14"
+									strokeLinecap="round"
+								/>
+							</g>
+						))}
+
+					{/* CAPA 2: Línea de trazada / Racing line o Minisector Comparison Slices */}
 					{comparisonData && comparisonData.segmentSlices.length > 0 ? (
 						comparisonData.segmentSlices.map((slice) => (
 							<path
 								key={slice.id}
 								stroke={slice.color}
-								strokeWidth={120}
+								strokeWidth={80}
 								strokeLinecap="round"
 								strokeLinejoin="round"
 								fill="transparent"
@@ -492,19 +588,60 @@ export default function Map({ filter }: Props) {
 						})
 					)}
 
-					{/* Start / Finish line */}
+					{/* Start / Finish line estilo bandera a cuadros */}
 					{finishLine && (
-						<line
-							x1={finishLine.x}
-							y1={finishLine.y - 180}
-							x2={finishLine.x}
-							y2={finishLine.y + 180}
-							stroke="#FFFFFF"
-							strokeWidth={80}
-							strokeLinecap="round"
-							transform={`rotate(${finishLine.startAngle + 90}, ${finishLine.x}, ${finishLine.y})`}
-						/>
+						<g transform={`rotate(${finishLine.startAngle + 90}, ${finishLine.x}, ${finishLine.y})`}>
+							<line
+								x1={finishLine.x}
+								y1={finishLine.y - 88}
+								x2={finishLine.x}
+								y2={finishLine.y + 88}
+								stroke="#FFFFFF"
+								strokeWidth={45}
+								strokeLinecap="round"
+							/>
+							<line
+								x1={finishLine.x}
+								y1={finishLine.y - 88}
+								x2={finishLine.x}
+								y2={finishLine.y + 88}
+								stroke="#0F172A"
+								strokeWidth={45}
+								strokeDasharray="22 22"
+								strokeLinecap="butt"
+							/>
+						</g>
 					)}
+
+					{/* Badges de Sector flotantes (S1, S2, S3) */}
+					{showSectorNumbers &&
+						sectorTimingData &&
+						sectorTimingData.badges.map((badge) => (
+							<g key={`badge.${badge.label}`} transform={`translate(${badge.x}, ${badge.y})`} className="select-none">
+								<rect
+									x={-180}
+									y={-110}
+									width={360}
+									height={220}
+									rx={110}
+									fill="#0F172A"
+									stroke="#334155"
+									strokeWidth={20}
+								/>
+								<text
+									x={0}
+									y={14}
+									fill="#CBD5E1"
+									fontSize={150}
+									fontWeight="bold"
+									fontFamily="monospace"
+									textAnchor="middle"
+									dominantBaseline="middle"
+								>
+									{badge.label}
+								</text>
+							</g>
+						))}
 
 					{/* Corner Numbers */}
 					{showCornerNumbers &&
