@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import clsx from "clsx";
 import { motion, AnimatePresence } from "motion/react";
-import { X, ArrowLeftRight, Zap, Gauge } from "lucide-react";
+import { X, ArrowLeftRight, Zap, Gauge, GripVertical } from "lucide-react";
 
 import type { Driver, TimingDataDriver, TimingStatsDriver, Stint } from "@/types/state.type";
 import { useSettingsStore } from "@/stores/useSettingsStore";
@@ -12,11 +12,41 @@ import { getCustomTeamColor, getComparisonColors } from "@/lib/teamColors";
 import { compareSectors, parseTimeToSeconds, type SectorComparison } from "@/lib/timingComparison";
 import TireIcon from "@/components/TireIcon";
 
+function formatDriverShortName(driver?: Driver | null): string {
+	if (!driver) return "";
+	if (driver.FirstName && driver.LastName) {
+		const initial = driver.FirstName.trim().charAt(0).toUpperCase();
+		return `${initial}. ${driver.LastName}`;
+	}
+	if (driver.FullName) {
+		const parts = driver.FullName.trim().split(/\s+/);
+		if (parts.length > 1) {
+			const initial = parts[0].charAt(0).toUpperCase();
+			const lastName = parts.slice(1).join(" ");
+			return `${initial}. ${lastName}`;
+		}
+		return driver.FullName;
+	}
+	if (driver.BroadcastName) {
+		const parts = driver.BroadcastName.trim().split(/\s+/);
+		if (parts.length > 1) {
+			const initial = parts[0].charAt(0).toUpperCase();
+			const lastName = parts.slice(1).join(" ");
+			return `${initial}. ${lastName}`;
+		}
+		return driver.BroadcastName;
+	}
+	return driver.Tla || "";
+}
+
 type Props = {
 	onClose?: () => void;
 };
 
 export default function DriverComparison({ onClose }: Props) {
+	const singleDragRef = useRef<HTMLDivElement>(null);
+	const dualDragRef = useRef<HTMLDivElement>(null);
+
 	const mode = useSettingsStore((state) => state.comparisonMode);
 	const setMode = useSettingsStore((state) => state.setComparisonMode);
 
@@ -63,15 +93,30 @@ export default function DriverComparison({ onClose }: Props) {
 		const pos = singleTiming?.Position;
 
 		return (
-			<div className="fixed bottom-4 sm:bottom-6 inset-x-0 z-40 flex justify-center pointer-events-none px-3 select-none">
+			<div
+				ref={singleDragRef}
+				className="fixed inset-0 z-40 flex items-end justify-center pointer-events-none pb-4 sm:pb-6 px-3 select-none"
+			>
 				<motion.div
-					layout
-					initial={{ opacity: 0, y: 16, scale: 0.95 }}
-					animate={{ opacity: 1, y: 0, scale: 1 }}
-					exit={{ opacity: 0, y: 16, scale: 0.95 }}
+					drag
+					dragConstraints={singleDragRef}
+					dragMomentum={false}
+					dragElastic={0.08}
+					whileDrag={{ scale: 1.03, boxShadow: "0 20px 40px rgba(0,0,0,0.8)" }}
+					initial={{ opacity: 0, scale: 0.95 }}
+					animate={{ opacity: 1, scale: 1 }}
+					exit={{ opacity: 0, scale: 0.95 }}
 					transition={{ type: "spring", stiffness: 480, damping: 30 }}
-					className="pointer-events-auto flex items-center justify-between gap-2 sm:gap-2.5 px-2.5 sm:px-3.5 py-1.5 rounded-full bg-[#131B2A]/95 backdrop-blur-xl border border-white/[0.12] shadow-[0_12px_32px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.12)] text-xs text-white"
+					className="pointer-events-auto cursor-grab active:cursor-grabbing touch-none flex items-center justify-between gap-2 sm:gap-2.5 pl-2 pr-2.5 sm:pr-3.5 py-1.5 rounded-full bg-[#131B2A]/95 backdrop-blur-xl border border-white/[0.12] shadow-[0_12px_32px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.12)] text-xs text-white"
 				>
+					{/* Handle de arrastre sutil */}
+					<div
+						className="flex items-center text-white/30 hover:text-white/60 transition-colors cursor-grab active:cursor-grabbing shrink-0"
+						title="Arrastrar"
+					>
+						<GripVertical className="w-3.5 h-3.5" />
+					</div>
+
 					{/* Piloto Info */}
 					<div className="flex items-center gap-1.5 shrink-0">
 						<span
@@ -79,7 +124,7 @@ export default function DriverComparison({ onClose }: Props) {
 							style={{ backgroundColor: teamColor }}
 						/>
 						<span className="font-sans font-bold text-white text-[12px] sm:text-[12.5px] tracking-tight whitespace-nowrap">
-							{singleDriver.FullName}
+							{formatDriverShortName(singleDriver)}
 						</span>
 						{pos && (
 							<span className="text-[10px] font-mono text-white/40">
@@ -100,6 +145,7 @@ export default function DriverComparison({ onClose }: Props) {
 					<div className="flex items-center gap-1 shrink-0">
 						{teammate && (
 							<button
+								onPointerDown={(e) => e.stopPropagation()}
 								onClick={() => setFavoriteDrivers([singleDriver.RacingNumber, teammate.RacingNumber])}
 								className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-white/[0.07] hover:bg-white/[0.12] text-white/90 border border-white/[0.08] transition-colors cursor-pointer flex items-center gap-1 active:scale-95"
 								title={`Comparar con ${teammate.FullName}`}
@@ -109,6 +155,7 @@ export default function DriverComparison({ onClose }: Props) {
 							</button>
 						)}
 						<button
+							onPointerDown={(e) => e.stopPropagation()}
 							onClick={() => removeFavoriteDriver(singleDriver.RacingNumber)}
 							className="p-1 rounded-full text-white/40 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
 							title="Cancelar selección"
@@ -214,23 +261,31 @@ export default function DriverComparison({ onClose }: Props) {
 	const stint2 = app2?.Stints ? app2.Stints[app2.Stints.length - 1] : null;
 
 	return (
-		<div className="fixed bottom-3 sm:bottom-5 inset-x-0 z-40 flex justify-center pointer-events-none px-2 sm:px-3 select-none">
+		<div
+			ref={dualDragRef}
+			className="fixed inset-0 z-40 flex items-end justify-center pointer-events-none pb-3 sm:pb-5 px-2 sm:px-3 select-none"
+		>
 			<motion.div
-				layout
-				initial={{ opacity: 0, y: 16, scale: 0.96 }}
-				animate={{ opacity: 1, y: 0, scale: 1 }}
-				exit={{ opacity: 0, y: 16, scale: 0.96 }}
+				drag
+				dragConstraints={dualDragRef}
+				dragMomentum={false}
+				dragElastic={0.08}
+				whileDrag={{ scale: 1.015, boxShadow: "0 25px 60px rgba(0,0,0,0.9)" }}
+				initial={{ opacity: 0, scale: 0.96 }}
+				animate={{ opacity: 1, scale: 1 }}
+				exit={{ opacity: 0, scale: 0.96 }}
 				transition={{ type: "spring", stiffness: 450, damping: 30 }}
-				className="pointer-events-auto w-full max-w-xl sm:max-w-2xl rounded-2xl bg-[#111726]/95 backdrop-blur-2xl border border-white/[0.10] shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.10)] p-3 text-white flex flex-col gap-2"
+				className="pointer-events-auto cursor-grab active:cursor-grabbing touch-none w-full max-w-xl sm:max-w-2xl rounded-2xl bg-[#111726]/95 backdrop-blur-2xl border border-white/[0.10] shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.10)] p-3 text-white flex flex-col gap-2"
 			>
 				{/* 1. Barra de Control Superior */}
-				<div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+				<div className="flex items-center justify-between border-b border-white/[0.06] pb-1.5">
 					{/* Toggle Modo: Última vs Mejor PB */}
-					<div className="flex items-center p-0.5 rounded-lg bg-black/40 border border-white/[0.08] text-[10px] font-mono">
+					<div className="flex items-center p-0.5 rounded-lg bg-black/40 border border-white/[0.08] text-[9.5px] font-mono">
 						<button
+							onPointerDown={(e) => e.stopPropagation()}
 							onClick={() => setMode("last")}
 							className={clsx(
-								"px-2.5 py-0.5 rounded-md transition-all font-semibold cursor-pointer",
+								"px-2 py-0.5 rounded-md transition-all font-semibold cursor-pointer",
 								mode === "last"
 									? "bg-white/[0.16] text-white shadow-xs"
 									: "text-white/40 hover:text-white"
@@ -239,9 +294,10 @@ export default function DriverComparison({ onClose }: Props) {
 							ÚLTIMA
 						</button>
 						<button
+							onPointerDown={(e) => e.stopPropagation()}
 							onClick={() => setMode("best")}
 							className={clsx(
-								"px-2.5 py-0.5 rounded-md transition-all font-semibold cursor-pointer",
+								"px-2 py-0.5 rounded-md transition-all font-semibold cursor-pointer",
 								mode === "best"
 									? "bg-white/[0.16] text-white shadow-xs"
 									: "text-white/40 hover:text-white"
@@ -251,17 +307,35 @@ export default function DriverComparison({ onClose }: Props) {
 						</button>
 					</div>
 
+					{/* Indicador de GAP Total en la barra superior */}
+					{lapDelta !== null && lapDelta !== 0 && (
+						<div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.08] text-[9.5px] font-mono">
+							<span className="text-white/40 font-semibold text-[9px]">GAP:</span>
+							<span
+								className="font-bold tracking-wide"
+								style={{ color: lapDelta > 0 ? color1 : color2 }}
+							>
+								{lapDelta > 0 ? driver1.Tla : driver2.Tla}
+							</span>
+							<span className="text-emerald-400 font-bold tabular-nums">
+								-{Math.abs(lapDelta).toFixed(3)}s
+							</span>
+						</div>
+					)}
+
 					{/* Botones de acción */}
 					<div className="flex items-center gap-1.5">
 						<button
+							onPointerDown={(e) => e.stopPropagation()}
 							onClick={handleSwap}
-							className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-[10.5px] font-mono text-white/80 border border-white/[0.08] transition-all cursor-pointer active:scale-95"
+							className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-[10px] font-mono text-white/80 border border-white/[0.08] transition-all cursor-pointer active:scale-95"
 							title="Intercambiar orden"
 						>
 							<ArrowLeftRight className="w-3 h-3 text-cyan-400" />
 							<span>Swap</span>
 						</button>
 						<button
+							onPointerDown={(e) => e.stopPropagation()}
 							onClick={handleClear}
 							className="p-1 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
 							title="Cerrar"
@@ -272,47 +346,55 @@ export default function DriverComparison({ onClose }: Props) {
 				</div>
 
 				{/* 2. Sección Piloto 1 (Limpio, sin cards anidadas) */}
-				<div className="flex flex-col gap-1.5 pt-0.5">
+				<div className="flex flex-col gap-1 pt-0.5">
 					{/* Fila Encabezado Piloto 1 */}
 					<div className="flex items-center justify-between text-xs">
-						<div className="flex items-center gap-2 min-w-0">
+						<div className="flex items-center gap-1.5 min-w-0 pr-1">
 							<span
-								className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+								className="w-2 h-2 rounded-full shrink-0 shadow-xs"
 								style={{ backgroundColor: color1 }}
 							/>
-							<span className="font-sans font-bold text-white text-[13px] tracking-tight truncate">
-								{driver1.FullName || driver1.BroadcastName}
+							<span className="font-sans font-bold text-white text-[12px] tracking-tight whitespace-nowrap">
+								{formatDriverShortName(driver1)}
 							</span>
-							<span className="text-[10px] font-mono text-white/40">
+							<span className="text-[9.5px] font-mono text-white/40 shrink-0">
 								P{timing1.Position || "-"}
 							</span>
 						</div>
 
-						<div className="flex items-center gap-3 shrink-0">
+						<div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
 							{stint1?.Compound && (
-								<div className="flex items-center gap-1 text-[10.5px] font-mono text-white/60">
-									<TireIcon compound={stint1.Compound} size={13} />
+								<div className="flex items-center gap-1 text-[10px] font-mono text-white/60">
+									<TireIcon compound={stint1.Compound} size={12} />
 									<span>{stint1.TotalLaps ?? 0}L</span>
 								</div>
 							)}
 							{st1 && (
 								<span
 									className={clsx(
-										"text-[10.5px] font-mono tabular-nums",
-										st1 > (st2 || 0) ? "text-emerald-400 font-semibold" : "text-white/50"
+										"text-[9.5px] font-mono tabular-nums hidden xs:inline",
+										st1 > (st2 || 0) ? "text-emerald-400 font-semibold" : "text-white/40"
 									)}
 								>
 									{st1} km/h
 								</span>
 							)}
-							<span
-								className={clsx(
-									"font-mono font-black text-sm tabular-nums",
-									lapDelta !== null && lapDelta > 0 ? "text-emerald-400" : "text-white"
+							{/* Tiempo de vuelta y delta */}
+							<div className="flex items-center gap-1.5 pl-0.5">
+								{lapDelta !== null && lapDelta < 0 && (
+									<span className="text-rose-400 font-mono font-bold text-[10.5px] tabular-nums">
+										+{Math.abs(lapDelta).toFixed(3)}s
+									</span>
 								)}
-							>
-								{lap1Time}
-							</span>
+								<span
+									className={clsx(
+										"font-mono font-black text-[13px] tabular-nums",
+										lapDelta !== null && lapDelta > 0 ? "text-emerald-400" : "text-white"
+									)}
+								>
+									{lap1Time}
+								</span>
+							</div>
 						</div>
 					</div>
 
@@ -332,11 +414,11 @@ export default function DriverComparison({ onClose }: Props) {
 							const seg1 = s1Segments?.[idx] || [];
 
 							return (
-								<div key={`d1.s.${idx}`} className="flex flex-col gap-1">
-									<div className="flex items-center justify-between text-[11px] font-mono">
-										<span className="text-white/40 font-semibold text-[10px]">S{idx + 1}</span>
+								<div key={`d1.s.${idx}`} className="flex flex-col gap-0.5">
+									<div className="flex items-center justify-between font-mono">
+										<span className="text-white/40 font-semibold text-[9px]">S{idx + 1}</span>
 										<span
-											className={clsx("font-bold tabular-nums text-xs", {
+											className={clsx("font-bold tabular-nums text-[11px]", {
 												"text-purple-400": isD1OverallFastest,
 												"text-emerald-400": comp.winner === 1 && !isD1OverallFastest,
 												"text-white": comp.winner !== 1 && !isD1OverallFastest && val1 !== "--",
@@ -352,7 +434,7 @@ export default function DriverComparison({ onClose }: Props) {
 												<div
 													key={sIdx}
 													className={clsx(
-														"flex-1 h-[4.5px] min-w-[3px] rounded-full transition-all",
+														"flex-1 h-[4px] min-w-[2.5px] rounded-full transition-all",
 														{
 															"bg-purple-500 shadow-[0_0_3px_rgba(168,85,247,0.6)]": seg.Status === 2051,
 															"bg-emerald-400 shadow-[0_0_3px_rgba(52,211,153,0.6)]": seg.Status === 2049,
@@ -368,7 +450,7 @@ export default function DriverComparison({ onClose }: Props) {
 												<div
 													key={fIdx}
 													className={clsx(
-														"flex-1 h-[4.5px] min-w-[3px] rounded-full",
+														"flex-1 h-[4px] min-w-[2.5px] rounded-full",
 														isD1OverallFastest
 															? "bg-purple-500"
 															: comp.winner === 1
@@ -387,8 +469,8 @@ export default function DriverComparison({ onClose }: Props) {
 					</div>
 				</div>
 
-				{/* 3. Línea Divisoria con Deltas de Sector (Espaciado limpio) */}
-				<div className="relative my-0.5 flex items-center justify-between border-t border-white/[0.08] pt-1.5 text-[10px] font-mono">
+				{/* 3. Franja Divisoria con Deltas de Sector (Simétrica con bordes sutiles arriba y abajo) */}
+				<div className="relative my-1 flex items-center justify-between border-y border-white/[0.06] py-1 text-[9.5px] font-mono bg-white/[0.015]">
 					<div className="grid grid-cols-3 gap-2 sm:gap-3 w-full text-center">
 						{[0, 1, 2].map((idx) => {
 							const comp = comparisons[idx];
@@ -396,17 +478,47 @@ export default function DriverComparison({ onClose }: Props) {
 							const isD1Faster = comp.winner === 1;
 							const isD2Faster = comp.winner === 2;
 
+							if (isD1Faster) {
+								return (
+									<div key={`delta.${idx}`} className="flex items-center justify-center">
+										<div className="inline-flex items-center gap-1 text-[9.5px] sm:text-[10px] font-mono whitespace-nowrap">
+											<span
+												className="w-1.5 h-1.5 rounded-full shrink-0 shadow-xs"
+												style={{ backgroundColor: color1 }}
+											/>
+											<span className="font-bold text-white/90 tracking-wide">
+												{driver1.Tla}
+											</span>
+											<span className="text-emerald-400 font-bold tabular-nums">
+												-{comp.delta.toFixed(3)}s
+											</span>
+										</div>
+									</div>
+								);
+							}
+
+							if (isD2Faster) {
+								return (
+									<div key={`delta.${idx}`} className="flex items-center justify-center">
+										<div className="inline-flex items-center gap-1 text-[9.5px] sm:text-[10px] font-mono whitespace-nowrap">
+											<span
+												className="w-1.5 h-1.5 rounded-full shrink-0 shadow-xs"
+												style={{ backgroundColor: color2 }}
+											/>
+											<span className="font-bold text-white/90 tracking-wide">
+												{driver2.Tla}
+											</span>
+											<span className="text-emerald-400 font-bold tabular-nums">
+												-{comp.delta.toFixed(3)}s
+											</span>
+										</div>
+									</div>
+								);
+							}
+
 							return (
-								<div key={`delta.${idx}`} className="flex items-center justify-center gap-1">
-									<span
-										className={clsx("font-bold tabular-nums text-[9.5px]", {
-											"text-emerald-400": isD1Faster,
-											"text-rose-400": isD2Faster,
-											"text-white/30": !isD1Faster && !isD2Faster,
-										})}
-									>
-										{isD1Faster ? `▲ -${comp.delta.toFixed(3)}s` : `▼ +${Math.abs(comp.delta).toFixed(3)}s`}
-									</span>
+								<div key={`delta.${idx}`} className="flex items-center justify-center text-[9.5px] text-white/30 font-mono">
+									= 0.000s
 								</div>
 							);
 						})}
@@ -414,53 +526,49 @@ export default function DriverComparison({ onClose }: Props) {
 				</div>
 
 				{/* 4. Sección Piloto 2 (Limpio, sin cards anidadas) */}
-				<div className="flex flex-col gap-1.5 pb-0.5">
+				<div className="flex flex-col gap-1 pb-0.5">
 					{/* Fila Encabezado Piloto 2 */}
 					<div className="flex items-center justify-between text-xs">
-						<div className="flex items-center gap-2 min-w-0">
+						<div className="flex items-center gap-1.5 min-w-0 pr-1">
 							<span
-								className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+								className="w-2 h-2 rounded-full shrink-0 shadow-xs"
 								style={{ backgroundColor: color2 }}
 							/>
-							<span className="font-sans font-bold text-white text-[13px] tracking-tight truncate">
-								{driver2.FullName || driver2.BroadcastName}
+							<span className="font-sans font-bold text-white text-[12px] tracking-tight whitespace-nowrap">
+								{formatDriverShortName(driver2)}
 							</span>
-							<span className="text-[10px] font-mono text-white/40">
+							<span className="text-[9.5px] font-mono text-white/40 shrink-0">
 								P{timing2.Position || "-"}
 							</span>
 						</div>
 
-						<div className="flex items-center gap-3 shrink-0">
+						<div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
 							{stint2?.Compound && (
-								<div className="flex items-center gap-1 text-[10.5px] font-mono text-white/60">
-									<TireIcon compound={stint2.Compound} size={13} />
+								<div className="flex items-center gap-1 text-[10px] font-mono text-white/60">
+									<TireIcon compound={stint2.Compound} size={12} />
 									<span>{stint2.TotalLaps ?? 0}L</span>
 								</div>
 							)}
 							{st2 && (
 								<span
 									className={clsx(
-										"text-[10.5px] font-mono tabular-nums",
-										st2 > (st1 || 0) ? "text-emerald-400 font-semibold" : "text-white/50"
+										"text-[9.5px] font-mono tabular-nums hidden xs:inline",
+										st2 > (st1 || 0) ? "text-emerald-400 font-semibold" : "text-white/40"
 									)}
 								>
 									{st2} km/h
 								</span>
 							)}
-							<div className="flex items-center gap-1.5">
-								{lapDelta !== null && (
-									<span
-										className={clsx(
-											"text-[10px] font-mono font-bold tabular-nums",
-											lapDelta > 0 ? "text-rose-400" : "text-emerald-400"
-										)}
-									>
-										{lapDelta > 0 ? `+${lapDelta.toFixed(3)}s` : `-${Math.abs(lapDelta).toFixed(3)}s`}
+							{/* Tiempo de vuelta y delta */}
+							<div className="flex items-center gap-1.5 pl-0.5">
+								{lapDelta !== null && lapDelta > 0 && (
+									<span className="text-rose-400 font-mono font-bold text-[10.5px] tabular-nums">
+										+{lapDelta.toFixed(3)}s
 									</span>
 								)}
 								<span
 									className={clsx(
-										"font-mono font-black text-sm tabular-nums",
+										"font-mono font-black text-[13px] tabular-nums",
 										lapDelta !== null && lapDelta < 0 ? "text-emerald-400" : "text-white"
 									)}
 								>
