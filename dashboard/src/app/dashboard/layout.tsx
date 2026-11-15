@@ -14,6 +14,7 @@ import { useDataStore } from '@/stores/useDataStore';
 import DesktopHeader from '@/components/dashboard/DesktopHeader';
 import MobileHeader from '@/components/dashboard/MobileHeader';
 import TrackEventNotification from '@/components/dashboard/TrackEventNotification';
+import SupportFooter from '@/components/SupportFooter';
 
 type Props = {
 	children: ReactNode;
@@ -45,6 +46,8 @@ export default function DashboardLayout({ children }: Props) {
 				>
 					{children}
 				</div>
+
+				{(!syncing || ended) && <SupportFooter />}
 
 				<div
 					className={

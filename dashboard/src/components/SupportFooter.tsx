@@ -1,42 +1,17 @@
 "use client";
 
-import Link from "next/link";
-import { useDonationModal } from "@/hooks/useDonationModal";
-
 export default function SupportFooter() {
-	const donationModal = useDonationModal();
-
 	return (
-		<footer className="relative z-10 border-t border-neutral-800/80 bg-[#0a0a0a] px-5 md:px-6 py-6 md:py-8 text-center space-y-3.5 mt-auto">
-			<div className="max-w-5xl mx-auto flex flex-col items-center justify-center gap-3">
-				{/* Legal Navigation Links */}
-				<div className="flex flex-wrap items-center justify-center gap-x-4 md:gap-x-6 gap-y-1.5 text-[11px] md:text-sm text-neutral-400 font-medium">
-					<Link href="/privacy" className="hover:text-cyan-400 transition-colors">
-						Privacy Policy
-					</Link>
-					<span className="text-neutral-700">·</span>
-					<Link href="/terms" className="hover:text-cyan-400 transition-colors">
-						Terms of Service
-					</Link>
-					<span className="text-neutral-700">·</span>
-					<Link href="/about" className="hover:text-cyan-400 transition-colors">
-						About Us
-					</Link>
-					<span className="text-neutral-700">·</span>
-					<Link href="/contact" className="hover:text-cyan-400 transition-colors">
-						Contact
-					</Link>
-				</div>
-
-				{/* Platform Details & AGPL License */}
-				<p className="text-[10px] md:text-xs text-neutral-500 leading-relaxed max-w-2xl mx-auto">
-					Professional F1 Telemetry & Timing ·{" "}
-					<span className="text-white font-bold">FORMULETRY</span> · Based on{" "}
+		<footer className="w-full py-6 px-4 mt-auto border-t border-white/[0.06] bg-transparent text-center select-none">
+			<div className="max-w-4xl mx-auto flex flex-col items-center justify-center gap-2">
+				{/* AGPL License & View Source Code */}
+				<p className="text-xs sm:text-[13px] text-neutral-400">
+					Based on{" "}
 					<a
 						href="https://github.com/slowlydev/f1-dash"
 						target="_blank"
 						rel="noopener noreferrer"
-						className="text-neutral-400 hover:text-cyan-400 transition-colors underline underline-offset-2"
+						className="text-white hover:text-cyan-400 underline underline-offset-2 transition-colors font-medium"
 					>
 						f1-dash
 					</a>{" "}
@@ -45,7 +20,7 @@ export default function SupportFooter() {
 						href="https://www.gnu.org/licenses/agpl-3.0.html"
 						target="_blank"
 						rel="noopener noreferrer"
-						className="text-neutral-400 hover:text-cyan-400 transition-colors"
+						className="text-neutral-300 hover:text-cyan-400 transition-colors font-medium"
 					>
 						GNU AGPL v3
 					</a>{" "}
@@ -54,14 +29,14 @@ export default function SupportFooter() {
 						href="https://github.com/Viiimax/formuletry"
 						target="_blank"
 						rel="noopener noreferrer"
-						className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
+						className="text-cyan-400 hover:text-cyan-300 transition-colors font-medium"
 					>
 						View Source Code
 					</a>
 				</p>
 
 				{/* F1 Legal Disclaimer */}
-				<p className="text-[9px] md:text-xs text-neutral-600 leading-relaxed max-w-xl mx-auto">
+				<p className="text-[10.5px] sm:text-xs text-neutral-500 max-w-2xl leading-relaxed">
 					This project is unofficial and is not associated in any way with the Formula 1 companies.
 					F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX and related
 					marks are trademarks of Formula One Licensing B.V.

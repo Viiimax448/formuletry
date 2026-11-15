@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://formuletry.com/sitemap.xml
+Sitemap: https://www.formuletry.com/sitemap.xml

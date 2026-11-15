@@ -45,6 +45,16 @@ const config: NextConfig = {
 		],
 	},
 	headers: async () => frameDisableHeaders,
+	async redirects() {
+		if (process.env.NEXT_EXPORT === "1") return [];
+		return [
+			{
+				source: "/",
+				destination: "/dashboard/",
+				permanent: false,
+			},
+		];
+	},
 };
 
 export default config;

@@ -11,6 +11,7 @@ import DashboardSupportWidget from "@/components/dashboard/DashboardSupportWidge
 import DesktopHeader from "@/components/dashboard/DesktopHeader";
 import MobileHeader from "@/components/dashboard/MobileHeader";
 import TrackEventNotification from "@/components/dashboard/TrackEventNotification";
+import SupportFooter from "@/components/SupportFooter";
 
 export default function DemoPage() {
 	// Initialize and drive 2026 mock data simulation
@@ -54,6 +55,8 @@ export default function DemoPage() {
 					<TrackViolations />
 				</div>
 			</div>
+
+			<SupportFooter />
 		</div>
 	);
 }
