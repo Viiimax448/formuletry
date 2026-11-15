@@ -25,15 +25,15 @@ export default function Page() {
 			</div>
 
 			<div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-				<div className="flex h-[32rem] flex-col rounded-lg bg-[#111827] border border-gray-600/30 p-4 shadow-lg overflow-hidden">
+				<div className="flex h-[32rem] flex-col rounded-2xl bg-[#111726]/90 backdrop-blur-xl border border-white/[0.08] p-4 shadow-[0_12px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] overflow-hidden">
 					<RaceControl />
 				</div>
 
-				<div className="flex h-[32rem] flex-col rounded-lg bg-[#111827] border border-gray-600/30 p-4 shadow-lg overflow-hidden">
+				<div className="flex h-[32rem] flex-col rounded-2xl bg-[#111726]/90 backdrop-blur-xl border border-white/[0.08] p-4 shadow-[0_12px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] overflow-hidden">
 					<TeamRadios />
 				</div>
 
-				<div className="flex h-[32rem] flex-col rounded-lg bg-[#111827] border border-gray-600/30 p-4 shadow-lg overflow-hidden">
+				<div className="flex h-[32rem] flex-col rounded-2xl bg-[#111726]/90 backdrop-blur-xl border border-white/[0.08] p-4 shadow-[0_12px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] overflow-hidden">
 					<TrackViolations />
 				</div>
 			</div>

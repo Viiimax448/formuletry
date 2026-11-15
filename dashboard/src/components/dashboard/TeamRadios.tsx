@@ -31,14 +31,15 @@ export default function TeamRadios() {
 
 	return (
 		<div className="flex h-full w-full flex-col">
-			{/* Panel Header Styled like Top Header */}
-			<div className="flex items-center justify-between pb-3 border-b border-gray-800/80 mb-3">
+			{/* Panel Header */}
+			<div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08] mb-2.5">
 				{/* Title + Count */}
 				<div className="flex items-center gap-2">
-					<h2 className="text-sm font-semibold tracking-wide text-white uppercase font-sans flex items-center gap-1.5">
+					<h2 className="text-xs sm:text-[13px] font-bold tracking-wider text-white uppercase font-sans flex items-center gap-1.5">
+						<Radio className="w-3.5 h-3.5 text-white/60" />
 						<span>Team Radio</span>
 					</h2>
-					<span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-bold text-gray-300">
+					<span className="rounded-full bg-white/[0.08] border border-white/[0.06] px-2 py-0.5 text-[10px] font-mono font-bold text-white/80">
 						{captures.length}
 					</span>
 				</div>
@@ -47,15 +48,15 @@ export default function TeamRadios() {
 				<button
 					onClick={() => setOnlyFavorites(!onlyFavorites)}
 					className={clsx(
-						"px-2.5 py-1 rounded-md text-xs font-mono font-medium transition-all flex items-center gap-1",
+						"px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition-all flex items-center gap-1.5 cursor-pointer",
 						onlyFavorites
-							? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
-							: "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10",
+							? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30"
+							: "bg-white/[0.06] text-white/60 hover:text-white hover:bg-white/[0.10] border border-white/[0.06]",
 					)}
 					title="Filtrar por pilotos favoritos"
 				>
-					<Star className={clsx("w-3 h-3", onlyFavorites && "fill-cyan-300")} />
-					<span className="text-[11px]">{onlyFavorites ? "Favoritos" : "Todos"}</span>
+					<Star className={clsx("w-3 h-3", onlyFavorites ? "fill-cyan-300" : "text-white/40")} />
+					<span className="text-[10.5px]">{onlyFavorites ? "Favoritos" : "Todos"}</span>
 				</button>
 			</div>
 

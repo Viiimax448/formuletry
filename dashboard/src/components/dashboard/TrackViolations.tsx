@@ -54,26 +54,27 @@ export default function TrackViolations() {
 	return (
 		<div className="flex h-full w-full flex-col">
 			{/* Panel Header */}
-			<div className="flex flex-col gap-2 pb-3 border-b border-gray-800/80 mb-3">
+			<div className="flex flex-col gap-2 pb-2.5 border-b border-white/[0.08] mb-2.5">
 				<div className="flex items-center justify-between">
 					{/* Title + Count */}
 					<div className="flex items-center gap-2">
-						<h2 className="text-sm font-semibold tracking-wide text-white uppercase font-sans flex items-center gap-1.5">
+						<h2 className="text-xs sm:text-[13px] font-bold tracking-wider text-white uppercase font-sans flex items-center gap-1.5">
+							<AlertCircle className="w-3.5 h-3.5 text-white/60" />
 							<span>Track Violations</span>
 						</h2>
-						<span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-bold text-gray-300">
+						<span className="rounded-full bg-white/[0.08] border border-white/[0.06] px-2 py-0.5 text-[10px] font-mono font-bold text-white/80">
 							{totalViolations}
 						</span>
 					</div>
 
 					{/* Status Pill Badge */}
 					{violationDrivers.length > 0 ? (
-						<div className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-amber-500/60 text-amber-400 text-[10px] font-mono font-semibold">
+						<div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-[10px] font-mono font-semibold">
 							<AlertCircle className="w-3 h-3 text-amber-400" />
 							<span>{violationDrivers.length} Piloto{violationDrivers.length > 1 ? "s" : ""}</span>
 						</div>
 					) : (
-						<div className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-emerald-500/60 text-emerald-400 text-[10px] font-mono font-semibold">
+						<div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-semibold">
 							<ShieldCheck className="w-3 h-3 text-emerald-400" />
 							<span>Pista Limpia</span>
 						</div>

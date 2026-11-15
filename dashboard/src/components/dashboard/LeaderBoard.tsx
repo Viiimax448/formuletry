@@ -65,13 +65,15 @@ export default function LeaderBoard() {
             {/* Head-to-Head Driver Comparison Cards */}
             <DriverComparison />
 
-            {driverCardOpen && drivers && driversTiming && drivers[driverCardOpen] && driversTiming.Lines[driverCardOpen] && (
-                <DriverCardModal
-                    driver={drivers[driverCardOpen]}
-                    timingDriver={driversTiming.Lines[driverCardOpen]}
-                    onClose={() => setDriverCardModalOpen(null)}
-                />
-            )}
+            <AnimatePresence>
+                {driverCardOpen && drivers && driversTiming && drivers[driverCardOpen] && driversTiming.Lines[driverCardOpen] && (
+                    <DriverCardModal
+                        driver={drivers[driverCardOpen]}
+                        timingDriver={driversTiming.Lines[driverCardOpen]}
+                        onClose={() => setDriverCardModalOpen(null)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

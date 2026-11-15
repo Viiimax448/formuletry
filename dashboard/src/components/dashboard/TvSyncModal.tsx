@@ -16,12 +16,14 @@ export default function TvSyncModal({ isOpen, onClose }: Props) {
 
 	// Contador automático de delay mientras la telemetría está en pausa
 	useEffect(() => {
-		if (delayIsPaused) {
+		if (isOpen && delayIsPaused) {
+			const startDelay = useSettingsStore.getState().delay || 0;
+			const startTime = Date.now();
+
 			intervalRef.current = setInterval(() => {
-				const currentStore = useSettingsStore.getState();
-				const currentDelay = currentStore.delay || 0;
-				setDelay(currentDelay + 1);
-			}, 1000);
+				const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+				setDelay(startDelay + elapsedSeconds);
+			}, 250);
 		} else {
 			if (intervalRef.current) {
 				clearInterval(intervalRef.current);
@@ -35,7 +37,7 @@ export default function TvSyncModal({ isOpen, onClose }: Props) {
 				intervalRef.current = null;
 			}
 		};
-	}, [delayIsPaused, setDelay]);
+	}, [isOpen, delayIsPaused, setDelay]);
 
 	// Soporte para cerrar con tecla Escape
 	useEffect(() => {

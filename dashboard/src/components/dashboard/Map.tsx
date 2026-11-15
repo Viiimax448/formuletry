@@ -528,17 +528,17 @@ export default function Map({ filter }: Props) {
 				>
 					{/* CAPA 1: Asfalto base oscuro con bordes exteriores claramente definidos */}
 					<g id="map-track-asphalt">
-						{/* Líneas de contorno exterior de pista (más notorias) */}
+						{/* Líneas de contorno exterior de pista (más anchas y notorias) */}
 						{renderedSectors.map((sector) => (
 							<path
 								key={`asphalt.curb.${sector.number}`}
-								stroke="#33445C"
-								strokeWidth={230}
+								stroke="#526A8C"
+								strokeWidth={270}
 								strokeLinecap="round"
 								strokeLinejoin="round"
 								fill="transparent"
 								d={sector.d}
-								opacity={0.95}
+								opacity={1}
 							/>
 						))}
 						{/* Cuerpo de asfalto oscuro */}
@@ -591,29 +591,28 @@ export default function Map({ filter }: Props) {
 						})
 					)}
 
-					{/* Líneas divisorias de sector en la pista (I1 e I2) - Perpendiculares a la pista */}
+					{/* Líneas divisorias de sector en la pista (I1 e I2) - Línea simple sólida */}
 					{sectorTimingData &&
 						sectorTimingData.splits.map((split, idx) => (
 							<g key={`split.line.${idx}`}>
-								{/* Corte oscuro transversal para interrumpir limpiamente la trazada blanca */}
+								{/* Base oscura para contraste */}
 								<line
 									x1={split.x1}
 									y1={split.y1}
 									x2={split.x2}
 									y2={split.y2}
 									stroke="#090E17"
-									strokeWidth={56}
+									strokeWidth={44}
 									strokeLinecap="butt"
 								/>
-								{/* Línea divisoria luminosa transversal de cronometraje */}
+								{/* Línea divisoria simple continua blanca */}
 								<line
 									x1={split.x1}
 									y1={split.y1}
 									x2={split.x2}
 									y2={split.y2}
-									stroke="#E2E8F0"
-									strokeWidth={28}
-									strokeDasharray="26 14"
+									stroke="#FFFFFF"
+									strokeWidth={22}
 									strokeLinecap="butt"
 								/>
 							</g>

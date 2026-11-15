@@ -62,7 +62,7 @@ export function RaceControlMessage({ msg, gmtOffset }: Props) {
 			exit={{ opacity: 0, scale: 0.95 }}
 			transition={{ duration: 0.15 }}
 			className={clsx(
-				"group relative list-none rounded-md border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] border-l-2 px-2.5 py-2 transition-colors duration-150",
+				"group relative list-none rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] border-l-[3px] px-2.5 py-2 transition-colors duration-150 shadow-xs",
 				{
 					"border-l-red-500": severity === "penalty",
 					"border-l-amber-500": severity === "incident",

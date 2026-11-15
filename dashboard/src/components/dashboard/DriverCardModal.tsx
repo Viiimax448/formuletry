@@ -1,6 +1,7 @@
 import React from "react";
 import { X, Disc } from "lucide-react";
 import clsx from "clsx";
+import { motion } from "motion/react";
 import { useDataStore } from "@/stores/useDataStore";
 import DriverMiniSectors from "../driver/DriverMiniSectors";
 import DriverTag from "../driver/DriverTag";
@@ -10,7 +11,7 @@ import DriverTire from "../driver/DriverTire";
 import DriverLapTime from "../driver/DriverLapTime";
 import TireIcon from "../TireIcon";
 import { sortPos } from "@/lib/sorting";
-import { getCustomTeamColor } from "@/lib/teamColors";
+import { getCustomTeamColor, getDarkerTeamColor, getContrastColor } from "@/lib/teamColors";
 import type { Driver, TimingDataDriver, Stint } from "@/types/state.type";
 
 interface DriverCardModalProps {
@@ -33,6 +34,10 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 	const allTimingStats = useDataStore((state) => state.state?.TimingStats?.Lines);
 
 	const teamColor = getCustomTeamColor(driver.TeamColour, driver.Tla);
+	const posBgColor = getCustomTeamColor(driver.TeamColour, driver.Tla);
+	const nameBgColor = getDarkerTeamColor(driver.TeamColour, driver.Tla);
+	const posTextColor = getContrastColor(posBgColor);
+	const nameTextColor = getContrastColor(nameBgColor);
 
 	// 3. Stints y Neumáticos
 	const stints: Stint[] = appTimingDriver?.Stints || [];
@@ -216,28 +221,41 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 
 	return (
 		// Overlay
-		<div
-			className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150"
+		<motion.div
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			exit={{ opacity: 0 }}
+			transition={{ duration: 0.18 }}
+			className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-md"
 			onClick={onClose}
 		>
-			{/* Modal Container con borde fino del color de la escudería */}
-			<div
-				className="relative w-full max-w-sm md:max-w-xl bg-[#111827]/95 backdrop-blur-md rounded-xl overflow-hidden animate-in zoom-in-95 duration-150 shadow-2xl"
-				style={{
-					border: `1.5px solid ${teamColor}`,
-				}}
+			{/* Modal Container con estilo Dark Glass y acento de escudería */}
+			<motion.div
+				initial={{ opacity: 0, scale: 0.92, y: 12 }}
+				animate={{ opacity: 1, scale: 1, y: 0 }}
+				exit={{ opacity: 0, scale: 0.94, y: 8 }}
+				transition={{ type: "spring", stiffness: 420, damping: 28 }}
+				className="relative w-full max-w-sm md:max-w-xl bg-[#111726]/95 backdrop-blur-2xl rounded-2xl border border-white/[0.12] shadow-[0_25px_60px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.12)] overflow-hidden"
 				onClick={(e) => e.stopPropagation()}
 			>
-				{/* Header Estilo Broadcast con más padding */}
-				<div className="flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 border-b border-white/10 bg-white/[0.02]">
-					<div className="flex items-center gap-2.5 min-w-0">
-						{/* Número de Carrera grande con el color de la escudería */}
-						<span
-							className="font-mono font-black text-xl sm:text-2xl tracking-tighter leading-none select-none shrink-0"
-							style={{ color: teamColor }}
-						>
-							#{driver.RacingNumber}
-						</span>
+				{/* Header Estilo Broadcast con Bloque de Identidad F1 */}
+				<div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-3.5 border-b border-white/[0.08] bg-white/[0.02]">
+					<div className="flex items-center gap-3 min-w-0">
+						{/* Bloque de Identidad F1 (Posición + Número de carrera) */}
+						<div className="flex items-stretch shrink-0 rounded-lg overflow-hidden shadow-xs border border-white/10">
+							<div
+								className="flex items-center justify-center px-2.5 sm:px-3 h-8 sm:h-9 font-mono font-black text-xs sm:text-sm select-none"
+								style={{ backgroundColor: posBgColor, color: posTextColor }}
+							>
+								P{currentPos}
+							</div>
+							<div
+								className="flex items-center justify-center px-2.5 sm:px-3 h-8 sm:h-9 font-mono font-black text-xs sm:text-sm select-none tracking-tight"
+								style={{ backgroundColor: nameBgColor, color: nameTextColor }}
+							>
+								#{driver.RacingNumber}
+							</div>
+						</div>
 
 						{/* Nombre, Ganancia de puestos y Escudería */}
 						<div className="flex flex-col min-w-0 justify-center">
@@ -250,20 +268,17 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 								<DriverPosDiff gridPos={appTimingDriver?.GridPos} position={currentPos} className="w-auto" />
 							</div>
 
-							<p className="text-[10px] sm:text-[11px] font-mono font-medium text-gray-400 uppercase tracking-wider truncate mt-1">
+							<p className="text-[10px] sm:text-[11px] font-mono font-medium text-white/50 uppercase tracking-wider truncate mt-1">
 								{driver.TeamName}
 							</p>
 						</div>
 					</div>
 
-					{/* Posición & Botón Cerrar */}
-					<div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-						<div className="px-2 py-0.5 bg-white/10 border border-white/15 text-white font-mono font-black rounded text-xs sm:text-sm tabular-nums tracking-wide">
-							P{timingDriver.Position}
-						</div>
+					{/* Botón Cerrar */}
+					<div className="flex items-center shrink-0">
 						<button
 							onClick={onClose}
-							className="p-1 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+							className="p-1.5 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
 							title="Cerrar detalles"
 						>
 							<X className="w-4 h-4" />
@@ -481,8 +496,8 @@ const DriverCardModal: React.FC<DriverCardModalProps> = ({ driver, timingDriver,
 						</div>
 					</div>
 				</div>
-			</div>
-		</div>
+			</motion.div>
+		</motion.div>
 	);
 };
 

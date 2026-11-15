@@ -360,11 +360,8 @@ export default function DriverComparison({ onClose }: Props) {
 							<span className="text-[9.5px] font-mono text-white/40 shrink-0">
 								P{timing1.Position || "-"}
 							</span>
-						</div>
-
-						<div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
 							{stint1?.Compound && (
-								<div className="flex items-center gap-1 text-[10px] font-mono text-white/60">
+								<div className="flex items-center gap-1 text-[10px] font-mono text-white/60 shrink-0 ml-1">
 									<TireIcon compound={stint1.Compound} size={12} />
 									<span>{stint1.TotalLaps ?? 0}L</span>
 								</div>
@@ -372,29 +369,30 @@ export default function DriverComparison({ onClose }: Props) {
 							{st1 && (
 								<span
 									className={clsx(
-										"text-[9.5px] font-mono tabular-nums hidden xs:inline",
+										"text-[9.5px] font-mono tabular-nums hidden xs:inline shrink-0 ml-0.5",
 										st1 > (st2 || 0) ? "text-emerald-400 font-semibold" : "text-white/40"
 									)}
 								>
 									{st1} km/h
 								</span>
 							)}
-							{/* Tiempo de vuelta y delta */}
-							<div className="flex items-center gap-1.5 pl-0.5">
-								{lapDelta !== null && lapDelta < 0 && (
-									<span className="text-rose-400 font-mono font-bold text-[10.5px] tabular-nums">
-										+{Math.abs(lapDelta).toFixed(3)}s
-									</span>
-								)}
-								<span
-									className={clsx(
-										"font-mono font-black text-[13px] tabular-nums",
-										lapDelta !== null && lapDelta > 0 ? "text-emerald-400" : "text-white"
-									)}
-								>
-									{lap1Time}
+						</div>
+
+						{/* Tiempos de vuelta solos a la derecha */}
+						<div className="flex items-center gap-1.5 shrink-0 pl-1">
+							{lapDelta !== null && lapDelta < 0 && (
+								<span className="text-rose-400 font-mono font-bold text-[10.5px] tabular-nums">
+									+{Math.abs(lapDelta).toFixed(3)}s
 								</span>
-							</div>
+							)}
+							<span
+								className={clsx(
+									"font-mono font-black text-[13px] tabular-nums",
+									lapDelta !== null && lapDelta > 0 ? "text-emerald-400" : "text-white"
+								)}
+							>
+								{lap1Time}
+							</span>
 						</div>
 					</div>
 
@@ -540,11 +538,8 @@ export default function DriverComparison({ onClose }: Props) {
 							<span className="text-[9.5px] font-mono text-white/40 shrink-0">
 								P{timing2.Position || "-"}
 							</span>
-						</div>
-
-						<div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
 							{stint2?.Compound && (
-								<div className="flex items-center gap-1 text-[10px] font-mono text-white/60">
+								<div className="flex items-center gap-1 text-[10px] font-mono text-white/60 shrink-0 ml-1">
 									<TireIcon compound={stint2.Compound} size={12} />
 									<span>{stint2.TotalLaps ?? 0}L</span>
 								</div>
@@ -552,29 +547,30 @@ export default function DriverComparison({ onClose }: Props) {
 							{st2 && (
 								<span
 									className={clsx(
-										"text-[9.5px] font-mono tabular-nums hidden xs:inline",
+										"text-[9.5px] font-mono tabular-nums hidden xs:inline shrink-0 ml-0.5",
 										st2 > (st1 || 0) ? "text-emerald-400 font-semibold" : "text-white/40"
 									)}
 								>
 									{st2} km/h
 								</span>
 							)}
-							{/* Tiempo de vuelta y delta */}
-							<div className="flex items-center gap-1.5 pl-0.5">
-								{lapDelta !== null && lapDelta > 0 && (
-									<span className="text-rose-400 font-mono font-bold text-[10.5px] tabular-nums">
-										+{lapDelta.toFixed(3)}s
-									</span>
-								)}
-								<span
-									className={clsx(
-										"font-mono font-black text-[13px] tabular-nums",
-										lapDelta !== null && lapDelta < 0 ? "text-emerald-400" : "text-white"
-									)}
-								>
-									{lap2Time}
+						</div>
+
+						{/* Tiempos de vuelta solos a la derecha */}
+						<div className="flex items-center gap-1.5 shrink-0 pl-1">
+							{lapDelta !== null && lapDelta > 0 && (
+								<span className="text-rose-400 font-mono font-bold text-[10.5px] tabular-nums">
+									+{lapDelta.toFixed(3)}s
 								</span>
-							</div>
+							)}
+							<span
+								className={clsx(
+									"font-mono font-black text-[13px] tabular-nums",
+									lapDelta !== null && lapDelta < 0 ? "text-emerald-400" : "text-white"
+								)}
+							>
+								{lap2Time}
+							</span>
 						</div>
 					</div>
 

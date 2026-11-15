@@ -111,7 +111,7 @@ export default function RadioMessage({ driver, capture, basePath, gmtOffset }: P
 			animate={{ opacity: 1, y: 0, scale: 1 }}
 			initial={{ opacity: 0, y: 4, scale: 0.98 }}
 			exit={{ opacity: 0, scale: 0.95 }}
-			className="group relative list-none rounded-md border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] border-l-2 px-2.5 py-2 transition-colors duration-150"
+			className="group relative list-none rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] border-l-[3px] px-2.5 py-2 transition-colors duration-150 shadow-xs"
 			style={{ borderLeftColor: teamColor }}
 		>
 			{/* Top Metadata Line */}

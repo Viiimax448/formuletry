@@ -97,15 +97,16 @@ export default function RaceControl() {
 
 	return (
 		<div className="flex h-full w-full flex-col">
-			{/* Panel Header Styled like Top Header */}
-			<div className="flex flex-col gap-2 pb-3 border-b border-gray-800/80 mb-3">
+			{/* Panel Header */}
+			<div className="flex flex-col gap-2 pb-2.5 border-b border-white/[0.08] mb-2.5">
 				<div className="flex items-center justify-between">
 					{/* Title + Count */}
 					<div className="flex items-center gap-2">
-						<h2 className="text-sm font-semibold tracking-wide text-white uppercase font-sans flex items-center gap-1.5">
+						<h2 className="text-xs sm:text-[13px] font-bold tracking-wider text-white uppercase font-sans flex items-center gap-1.5">
+							<Flag className="w-3.5 h-3.5 text-white/60" />
 							<span>Race Control</span>
 						</h2>
-						<span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-bold text-gray-300">
+						<span className="rounded-full bg-white/[0.08] border border-white/[0.06] px-2 py-0.5 text-[10px] font-mono font-bold text-white/80">
 							{filteredMessages.length}
 						</span>
 					</div>
@@ -115,10 +116,10 @@ export default function RaceControl() {
 						<button
 							onClick={() => setShowSearch(!showSearch)}
 							className={clsx(
-								"p-1.5 rounded-md transition-colors",
+								"p-1.5 rounded-lg transition-colors cursor-pointer",
 								showSearch
 									? "bg-white/15 text-white"
-									: "text-gray-400 hover:text-white hover:bg-white/10",
+									: "text-white/40 hover:text-white hover:bg-white/[0.08]",
 							)}
 							title="Buscar mensajes"
 						>
@@ -128,10 +129,10 @@ export default function RaceControl() {
 						<button
 							onClick={() => setRaceControlChime(!raceControlChime)}
 							className={clsx(
-								"p-1.5 rounded-md transition-colors",
+								"p-1.5 rounded-lg transition-colors cursor-pointer",
 								raceControlChime
 									? "text-emerald-400 hover:bg-emerald-500/10"
-									: "text-gray-500 hover:text-gray-300 hover:bg-white/10",
+									: "text-white/40 hover:text-white hover:bg-white/[0.08]",
 							)}
 							title={raceControlChime ? "Sonido activado (Chime)" : "Sonido silenciado"}
 						>

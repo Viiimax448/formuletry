@@ -24,7 +24,7 @@ export default function DriverViolations({ driver, driverViolations }: Props) {
 			initial={{ opacity: 0, y: 4, scale: 0.98 }}
 			exit={{ opacity: 0, scale: 0.95 }}
 			transition={{ duration: 0.15 }}
-			className="group relative rounded-md border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] border-l-2 border-l-amber-500/80 px-2.5 py-2 transition-colors duration-150"
+			className="group relative rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] border-l-[3px] border-l-amber-500/80 px-2.5 py-2 transition-colors duration-150 shadow-xs"
 		>
 			<div className="flex items-center justify-between gap-2.5">
 				{/* Left: Driver Badge & Info */}
@@ -61,7 +61,7 @@ export default function DriverViolations({ driver, driverViolations }: Props) {
 
 				{/* Right: Infraction Count Badge */}
 				<div className="flex items-center gap-2 shrink-0">
-					<div className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/5 border border-white/10 text-gray-200 font-mono text-xs font-bold shadow-xs">
+					<div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.06] border border-white/[0.08] text-white/90 font-mono text-xs font-bold shadow-xs">
 						<span className="text-amber-400 font-black">{driverViolations}</span>
 						<span className="text-[10px] font-medium text-gray-400">
 							{driverViolations === 1 ? "aviso" : "avisos"}
