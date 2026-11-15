@@ -84,9 +84,9 @@ export default function Driver({ driver, timingDriver, position, isSelected, han
 				compactMode ? "h-auto min-h-[1.75rem]" : "h-auto",
 				{
 					"opacity-50": timingDriver.KnockedOut || timingDriver.Retired || timingDriver.Stopped,
-					"bg-sky-800/20 border-sky-600/30": favoriteDriver,
+					"bg-sky-800/20 border-sky-600/30": favoriteDriver && !isSelected,
 					"bg-red-800/20 border-red-600/30": sessionPart != undefined && inDangerZone(position, sessionPart),
-					"bg-indigo-500/20": isSelected, // Highlight selected row
+					"bg-white/[0.07] shadow-[inset_3px_0_0_0_#38BDF8]": isSelected, // Highlight selected row estilo F1 Glass
 				}
 			)}
 		>

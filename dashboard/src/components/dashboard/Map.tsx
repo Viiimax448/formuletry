@@ -129,7 +129,7 @@ export default function Map({ filter }: Props) {
 	const [sectors, setSectors] = useState<MapSector[]>([]);
 	const [corners, setCorners] = useState<Corner[]>([]);
 	const [rotation, setRotation] = useState<number>(0);
-	const [finishLine, setFinishLine] = useState<null | { x: number; y: number; startAngle: number }>(null);
+	const [finishLine, setFinishLine] = useState<null | { x1: number; y1: number; x2: number; y2: number }>(null);
 	const [originalTrackPoints, setOriginalTrackPoints] = useState<null | { x: number; y: number }[]>(null);
 
 	useEffect(() => {
@@ -185,13 +185,23 @@ export default function Map({ filter }: Props) {
 			const cWidthX = maxPointX - minPointX + SPACE * 2;
 			const cWidthY = maxPointY - minPointY + SPACE * 2;
 
-			const rotatedFinishLine = rotate(mapJson.x[0], mapJson.y[0], fixedRotation, centerX, centerY);
-
-			const p3 = rotatedPoints[Math.min(3, rotatedPoints.length - 1)];
+			// Finish Line calculada perpendicular transversal a la pista en points[0]
 			const p0 = rotatedPoints[0];
-			const dx = p3.x - p0.x;
-			const dy = p3.y - p0.y;
-			const startAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+			const pNext = rotatedPoints[Math.min(3, rotatedPoints.length - 1)];
+			const pPrev = rotatedPoints[rotatedPoints.length - 3] || rotatedPoints[0];
+			const fdx = pNext.x - pPrev.x;
+			const fdy = pNext.y - pPrev.y;
+			const fLen = Math.sqrt(fdx * fdx + fdy * fdy) || 1;
+			const fnx = -fdy / fLen;
+			const fny = fdx / fLen;
+			const fHalfW = 145;
+
+			const finishLineData = {
+				x1: p0.x - fnx * fHalfW,
+				y1: p0.y - fny * fHalfW,
+				x2: p0.x + fnx * fHalfW,
+				y2: p0.y + fny * fHalfW,
+			};
 
 			// Store original track points for position calculation
 			const originalPoints = mapJson.x.map((x, index) => ({ x, y: mapJson.y[index] }));
@@ -202,7 +212,7 @@ export default function Map({ filter }: Props) {
 			setPoints(rotatedPoints);
 			setRotation(fixedRotation);
 			setCorners(cornerPositions);
-			setFinishLine({ x: rotatedFinishLine.x, y: rotatedFinishLine.y, startAngle });
+			setFinishLine(finishLineData);
 			setOriginalTrackPoints(originalPoints);
 		};
 
@@ -270,11 +280,21 @@ export default function Map({ filter }: Props) {
 
 		const getSplitLine = (idx: number) => {
 			const p = points[idx];
-			const nextP = points[(idx + 1) % totalPoints];
-			const dx = nextP.x - p.x;
-			const dy = nextP.y - p.y;
-			const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-			return { x: p.x, y: p.y, angle: angle + 90 };
+			const prevP = points[(idx - 2 + totalPoints) % totalPoints];
+			const nextP = points[(idx + 2) % totalPoints];
+			const dx = nextP.x - prevP.x;
+			const dy = nextP.y - prevP.y;
+			const len = Math.sqrt(dx * dx + dy * dy) || 1;
+			const nx = -dy / len;
+			const ny = dx / len;
+			const halfW = 145;
+
+			return {
+				x1: p.x - nx * halfW,
+				y1: p.y - ny * halfW,
+				x2: p.x + nx * halfW,
+				y2: p.y + ny * halfW,
+			};
 		};
 
 		return {
@@ -506,27 +526,27 @@ export default function Map({ filter }: Props) {
 					className="w-full h-full md:max-h-[82vh] lg:max-h-[88vh] object-contain"
 					xmlns="http://www.w3.org/2000/svg"
 				>
-					{/* CAPA 1: Asfalto base oscuro con volumen y bordes notorios */}
+					{/* CAPA 1: Asfalto base oscuro con bordes exteriores claramente definidos */}
 					<g id="map-track-asphalt">
-						{/* Bordes exteriores de pista (líneas de contorno claramente visibles) */}
+						{/* Líneas de contorno exterior de pista (más notorias) */}
 						{renderedSectors.map((sector) => (
 							<path
 								key={`asphalt.curb.${sector.number}`}
-								stroke="#3E4C63"
-								strokeWidth={185}
+								stroke="#33445C"
+								strokeWidth={230}
 								strokeLinecap="round"
 								strokeLinejoin="round"
 								fill="transparent"
 								d={sector.d}
-								opacity={0.9}
+								opacity={0.95}
 							/>
 						))}
 						{/* Cuerpo de asfalto oscuro */}
 						{renderedSectors.map((sector) => (
 							<path
 								key={`asphalt.base.${sector.number}`}
-								stroke="#172233"
-								strokeWidth={165}
+								stroke="#131C2B"
+								strokeWidth={180}
 								strokeLinecap="round"
 								strokeLinejoin="round"
 								fill="transparent"
@@ -571,53 +591,62 @@ export default function Map({ filter }: Props) {
 						})
 					)}
 
-					{/* Líneas divisorias de sector en la pista (I1 e I2) - Renderizadas SOBRE la línea blanca */}
+					{/* Líneas divisorias de sector en la pista (I1 e I2) - Perpendiculares a la pista */}
 					{sectorTimingData &&
 						sectorTimingData.splits.map((split, idx) => (
-							<g key={`split.line.${idx}`} transform={`rotate(${split.angle}, ${split.x}, ${split.y})`}>
-								{/* Corte oscuro para interrumpir limpiamente la trazada blanca */}
+							<g key={`split.line.${idx}`}>
+								{/* Corte oscuro transversal para interrumpir limpiamente la trazada blanca */}
 								<line
-									x1={split.x}
-									y1={split.y - 105}
-									x2={split.x}
-									y2={split.y + 105}
+									x1={split.x1}
+									y1={split.y1}
+									x2={split.x2}
+									y2={split.y2}
 									stroke="#090E17"
-									strokeWidth={52}
-									strokeLinecap="round"
+									strokeWidth={56}
+									strokeLinecap="butt"
 								/>
 								{/* Línea divisoria luminosa transversal de cronometraje */}
 								<line
-									x1={split.x}
-									y1={split.y - 100}
-									x2={split.x}
-									y2={split.y + 100}
+									x1={split.x1}
+									y1={split.y1}
+									x2={split.x2}
+									y2={split.y2}
 									stroke="#E2E8F0"
-									strokeWidth={34}
-									strokeDasharray="22 14"
-									strokeLinecap="round"
+									strokeWidth={28}
+									strokeDasharray="26 14"
+									strokeLinecap="butt"
 								/>
 							</g>
 						))}
 
-					{/* Start / Finish line estilo bandera a cuadros */}
+					{/* Start / Finish line estilo bandera a cuadros transversal */}
 					{finishLine && (
-						<g transform={`rotate(${finishLine.startAngle + 90}, ${finishLine.x}, ${finishLine.y})`}>
+						<g key="map.finish.line">
 							<line
-								x1={finishLine.x}
-								y1={finishLine.y - 88}
-								x2={finishLine.x}
-								y2={finishLine.y + 88}
-								stroke="#FFFFFF"
-								strokeWidth={45}
-								strokeLinecap="round"
+								x1={finishLine.x1}
+								y1={finishLine.y1}
+								x2={finishLine.x2}
+								y2={finishLine.y2}
+								stroke="#090E17"
+								strokeWidth={60}
+								strokeLinecap="butt"
 							/>
 							<line
-								x1={finishLine.x}
-								y1={finishLine.y - 88}
-								x2={finishLine.x}
-								y2={finishLine.y + 88}
-								stroke="#0F172A"
-								strokeWidth={45}
+								x1={finishLine.x1}
+								y1={finishLine.y1}
+								x2={finishLine.x2}
+								y2={finishLine.y2}
+								stroke="#FFFFFF"
+								strokeWidth={38}
+								strokeLinecap="butt"
+							/>
+							<line
+								x1={finishLine.x1}
+								y1={finishLine.y1}
+								x2={finishLine.x2}
+								y2={finishLine.y2}
+								stroke="#090E17"
+								strokeWidth={38}
 								strokeDasharray="22 22"
 								strokeLinecap="butt"
 							/>
@@ -779,10 +808,10 @@ const CarDot = ({ pos, name, color, favoriteDriver, pit, hidden, rotation, cente
 				/>
 			)}
 
-			<circle id="map.driver.circle" r={radius} />
+			<circle id="map.driver.circle" r={radius} className="pointer-events-none" />
 			<text
 				id="map.driver.text"
-				className="notranslate"
+				className="notranslate select-none pointer-events-none"
 				fontWeight="bold"
 				fontSize={fontSize}
 				style={{

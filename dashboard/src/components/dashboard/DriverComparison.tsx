@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import clsx from "clsx";
-import { motion } from "motion/react";
-import { X, ArrowLeftRight, Gauge, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { X, ArrowLeftRight, Zap, Gauge } from "lucide-react";
 
 import type { Driver, TimingDataDriver, TimingStatsDriver, Stint } from "@/types/state.type";
 import { useSettingsStore } from "@/stores/useSettingsStore";
 import { useDataStore } from "@/stores/useDataStore";
 import { getCustomTeamColor, getComparisonColors } from "@/lib/teamColors";
-import { compareSectors, parseTimeToSeconds } from "@/lib/timingComparison";
+import { compareSectors, parseTimeToSeconds, type SectorComparison } from "@/lib/timingComparison";
 import TireIcon from "@/components/TireIcon";
 
 type Props = {
@@ -30,62 +30,98 @@ export default function DriverComparison({ onClose }: Props) {
 	const timingAppData = useDataStore(({ state }) => state?.TimingAppData);
 	const bestLapSegments = useDataStore((state) => state.bestLapSegments);
 
+	// Cerrar con Escape
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape" && favoriteDrivers.length > 0) {
+				setFavoriteDrivers([]);
+				if (onClose) onClose();
+			}
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [favoriteDrivers, setFavoriteDrivers, onClose]);
+
 	if (!drivers || !driversTiming) return null;
 
 	const selectedIds = favoriteDrivers.filter((id) => !!drivers[id] && !!driversTiming.Lines[id]);
 
 	if (selectedIds.length === 0) return null;
 
-	// Single driver selected helper
+	// ESTADO 1: Un solo piloto seleccionado (Dynamic Island con Minisectores en Palitos)
 	if (selectedIds.length === 1) {
 		const singleDriver = drivers[selectedIds[0]];
 		if (!singleDriver) return null;
 
+		const singleTiming = driversTiming.Lines[selectedIds[0]];
 		const teamColor = getCustomTeamColor(singleDriver.TeamColour, singleDriver.Tla);
 		const teammate = Object.values(drivers).find(
 			(d) => d.TeamName === singleDriver.TeamName && d.RacingNumber !== singleDriver.RacingNumber
 		);
 
-		return (
-			<motion.div
-				initial={{ opacity: 0, y: 6 }}
-				animate={{ opacity: 1, y: 0 }}
-				exit={{ opacity: 0, y: 6 }}
-				className="flex items-center justify-between gap-2 px-3 py-1.5 mt-2 w-[92%] sm:w-full max-w-sm sm:max-w-xl md:max-w-2xl mx-auto rounded-xl bg-[#111827]/95 backdrop-blur-md text-[11px] shadow-lg"
-				style={{
-					border: `1.5px solid ${teamColor}`,
-				}}
-			>
-				<div className="flex items-center gap-2">
-					<div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: teamColor }} />
-					<span className="text-gray-300">
-						<strong className="text-white font-mono">{singleDriver.FullName}</strong> (1/2).{" "}
-						<span className="text-gray-500">Selecciona otro piloto.</span>
-					</span>
-				</div>
+		const lapTime = singleTiming?.LastLapTime?.Value || singleTiming?.BestLapTime?.Value;
+		const pos = singleTiming?.Position;
 
-				<div className="flex items-center gap-1.5">
-					{teammate && (
+		return (
+			<div className="fixed bottom-4 sm:bottom-6 inset-x-0 z-40 flex justify-center pointer-events-none px-3 select-none">
+				<motion.div
+					layout
+					initial={{ opacity: 0, y: 16, scale: 0.95 }}
+					animate={{ opacity: 1, y: 0, scale: 1 }}
+					exit={{ opacity: 0, y: 16, scale: 0.95 }}
+					transition={{ type: "spring", stiffness: 480, damping: 30 }}
+					className="pointer-events-auto flex items-center justify-between gap-2 sm:gap-2.5 px-2.5 sm:px-3.5 py-1.5 rounded-full bg-[#131B2A]/95 backdrop-blur-xl border border-white/[0.12] shadow-[0_12px_32px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.12)] text-xs text-white"
+				>
+					{/* Piloto Info */}
+					<div className="flex items-center gap-1.5 shrink-0">
+						<span
+							className="w-2 h-2 rounded-full shrink-0 shadow-xs"
+							style={{ backgroundColor: teamColor }}
+						/>
+						<span className="font-sans font-bold text-white text-[12px] sm:text-[12.5px] tracking-tight whitespace-nowrap">
+							{singleDriver.FullName}
+						</span>
+						{pos && (
+							<span className="text-[10px] font-mono text-white/40">
+								P{pos}
+							</span>
+						)}
+					</div>
+
+					{/* Minisectores en forma de palitos verticales (S1, S2, S3) sin fondo para ahorrar espacio */}
+					<VerticalMiniSectorSticks
+						sectors={singleTiming?.Sectors}
+						mode={mode}
+						bestLapSegments={bestLapSegments}
+						driverNumber={singleDriver.RacingNumber}
+					/>
+
+					{/* Acciones */}
+					<div className="flex items-center gap-1 shrink-0">
+						{teammate && (
+							<button
+								onClick={() => setFavoriteDrivers([singleDriver.RacingNumber, teammate.RacingNumber])}
+								className="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-white/[0.07] hover:bg-white/[0.12] text-white/90 border border-white/[0.08] transition-colors cursor-pointer flex items-center gap-1 active:scale-95"
+								title={`Comparar con ${teammate.FullName}`}
+							>
+								<Zap className="w-2.5 h-2.5 text-cyan-400" />
+								<span>vs {teammate.Tla}</span>
+							</button>
+						)}
 						<button
-							onClick={() => setFavoriteDrivers([singleDriver.RacingNumber, teammate.RacingNumber])}
-							className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 transition-colors cursor-pointer flex items-center gap-1"
+							onClick={() => removeFavoriteDriver(singleDriver.RacingNumber)}
+							className="p-1 rounded-full text-white/40 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+							title="Cancelar selección"
 						>
-							<Zap className="w-2.5 h-2.5 text-sky-400" />
-							<span>vs {teammate.Tla}</span>
+							<X className="w-3.5 h-3.5" />
 						</button>
-					)}
-					<button
-						onClick={() => removeFavoriteDriver(singleDriver.RacingNumber)}
-						className="text-gray-400 hover:text-white p-1"
-						title="Cerrar"
-					>
-						<X className="w-3.5 h-3.5" />
-					</button>
-				</div>
-			</motion.div>
+					</div>
+				</motion.div>
+			</div>
 		);
 	}
 
+	// ESTADO 2: Dos pilotos seleccionados (Head-to-Head HUD Flotante)
 	const id1 = selectedIds[0];
 	const id2 = selectedIds[1];
 
@@ -123,18 +159,18 @@ export default function DriverComparison({ onClose }: Props) {
 	const lapDelta = lap1Sec !== null && lap2Sec !== null ? lap2Sec - lap1Sec : null;
 
 	// Sector values by mode
-	const getSectorValues = (timing: TimingDataDriver, stats?: TimingStatsDriver) => {
+	const getSectorValues = (timing: TimingDataDriver, stats?: TimingStatsDriver): string[] => {
 		if (mode === "last") {
 			return [
-				timing.Sectors?.[0]?.Value || timing.Sectors?.[0]?.PreviousValue,
-				timing.Sectors?.[1]?.Value || timing.Sectors?.[1]?.PreviousValue,
-				timing.Sectors?.[2]?.Value || timing.Sectors?.[2]?.PreviousValue,
+				timing.Sectors?.[0]?.Value || timing.Sectors?.[0]?.PreviousValue || "--",
+				timing.Sectors?.[1]?.Value || timing.Sectors?.[1]?.PreviousValue || "--",
+				timing.Sectors?.[2]?.Value || timing.Sectors?.[2]?.PreviousValue || "--",
 			];
 		}
 		return [
-			stats?.BestSectors?.[0]?.Value || timing.Sectors?.[0]?.Value,
-			stats?.BestSectors?.[1]?.Value || timing.Sectors?.[1]?.Value,
-			stats?.BestSectors?.[2]?.Value || timing.Sectors?.[2]?.Value,
+			stats?.BestSectors?.[0]?.Value || timing.Sectors?.[0]?.Value || "--",
+			stats?.BestSectors?.[1]?.Value || timing.Sectors?.[1]?.Value || "--",
+			stats?.BestSectors?.[2]?.Value || timing.Sectors?.[2]?.Value || "--",
 		];
 	};
 
@@ -148,14 +184,10 @@ export default function DriverComparison({ onClose }: Props) {
 			if (mode === "last") {
 				return timing.Sectors?.[idx]?.Segments || [];
 			}
-
-			// Mode is "best"
 			const cachedPB = bestLapSegments?.[driverNumber]?.[idx];
 			if (cachedPB && cachedPB.length > 0) {
 				return cachedPB;
 			}
-
-			// If PB happened before connection and was not captured, do NOT fake all-purple/all-green minisectors
 			return [];
 		});
 	};
@@ -178,299 +210,413 @@ export default function DriverComparison({ onClose }: Props) {
 
 	const { color1, color2, isSameTeam } = getComparisonColors(driver1, driver2);
 
+	const stint1 = app1?.Stints ? app1.Stints[app1.Stints.length - 1] : null;
+	const stint2 = app2?.Stints ? app2.Stints[app2.Stints.length - 1] : null;
+
 	return (
-		<motion.div
-			layout
-			initial={{ opacity: 0, y: 8 }}
-			animate={{ opacity: 1, y: 0 }}
-			exit={{ opacity: 0, y: 8 }}
-			transition={{ duration: 0.2 }}
-			className="w-[90%] sm:w-full max-w-sm sm:max-w-lg md:max-w-xl mx-auto mt-2"
-		>
-			{/* Top Bar: Mode Toggle + Actions */}
-			<div className="flex items-center justify-between gap-1.5 mb-1.5 px-0.5">
-				{/* Mode Tabs */}
-				<div className="flex items-center bg-[#0d111a] p-0.5 rounded-lg border border-gray-800/80">
-					<button
-						onClick={() => setMode("last")}
-						className={clsx(
-							"px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-mono font-bold transition-colors cursor-pointer",
-							mode === "last"
-								? "bg-sky-500 text-black shadow-xs"
-								: "text-gray-400 hover:text-white"
-						)}
-					>
-						ÚLTIMA
-					</button>
-					<button
-						onClick={() => setMode("best")}
-						className={clsx(
-							"px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-mono font-bold transition-colors cursor-pointer",
-							mode === "best"
-								? "bg-sky-500 text-black shadow-xs"
-								: "text-gray-400 hover:text-white"
-						)}
-					>
-						MEJOR (PB)
-					</button>
-				</div>
-
-				{/* Same team badge indicator */}
-				{isSameTeam && (
-					<div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-neutral-900 border border-neutral-800 text-[10px] font-mono text-neutral-300">
-						<span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color1 }} />
-						<span>{driver1.Tla}</span>
-						<span className="text-neutral-500">vs</span>
-						<span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color2 }} />
-						<span>{driver2.Tla}</span>
+		<div className="fixed bottom-3 sm:bottom-5 inset-x-0 z-40 flex justify-center pointer-events-none px-2 sm:px-3 select-none">
+			<motion.div
+				layout
+				initial={{ opacity: 0, y: 16, scale: 0.96 }}
+				animate={{ opacity: 1, y: 0, scale: 1 }}
+				exit={{ opacity: 0, y: 16, scale: 0.96 }}
+				transition={{ type: "spring", stiffness: 450, damping: 30 }}
+				className="pointer-events-auto w-full max-w-xl sm:max-w-2xl rounded-2xl bg-[#111726]/95 backdrop-blur-2xl border border-white/[0.10] shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.10)] p-3 text-white flex flex-col gap-2"
+			>
+				{/* 1. Barra de Control Superior */}
+				<div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+					{/* Toggle Modo: Última vs Mejor PB */}
+					<div className="flex items-center p-0.5 rounded-lg bg-black/40 border border-white/[0.08] text-[10px] font-mono">
+						<button
+							onClick={() => setMode("last")}
+							className={clsx(
+								"px-2.5 py-0.5 rounded-md transition-all font-semibold cursor-pointer",
+								mode === "last"
+									? "bg-white/[0.16] text-white shadow-xs"
+									: "text-white/40 hover:text-white"
+							)}
+						>
+							ÚLTIMA
+						</button>
+						<button
+							onClick={() => setMode("best")}
+							className={clsx(
+								"px-2.5 py-0.5 rounded-md transition-all font-semibold cursor-pointer",
+								mode === "best"
+									? "bg-white/[0.16] text-white shadow-xs"
+									: "text-white/40 hover:text-white"
+							)}
+						>
+							MEJOR (PB)
+						</button>
 					</div>
-				)}
 
-				{/* Action Buttons */}
-				<div className="flex items-center gap-1">
-					<button
-						onClick={handleSwap}
-						className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-mono text-gray-300 hover:text-white bg-[#0f131d] border border-gray-800 hover:border-gray-700 transition-colors cursor-pointer"
-						title="Intercambiar pilotos"
-					>
-						<ArrowLeftRight className="w-3 h-3 text-sky-400" />
-						<span>Swap</span>
-					</button>
-					<button
-						onClick={handleClear}
-						className="p-1 rounded-md text-gray-400 hover:text-red-400 bg-[#0f131d] border border-gray-800 hover:border-gray-700 transition-colors cursor-pointer"
-						title="Cerrar comparativa"
-					>
-						<X className="w-3.5 h-3.5" />
-					</button>
+					{/* Botones de acción */}
+					<div className="flex items-center gap-1.5">
+						<button
+							onClick={handleSwap}
+							className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-[10.5px] font-mono text-white/80 border border-white/[0.08] transition-all cursor-pointer active:scale-95"
+							title="Intercambiar orden"
+						>
+							<ArrowLeftRight className="w-3 h-3 text-cyan-400" />
+							<span>Swap</span>
+						</button>
+						<button
+							onClick={handleClear}
+							className="p-1 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.08] transition-colors cursor-pointer"
+							title="Cerrar"
+						>
+							<X className="w-3.5 h-3.5" />
+						</button>
+					</div>
 				</div>
-			</div>
 
-			{/* 2 Comparison Cards Side-by-Side */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-				<CleanDriverCard
-					mode={mode}
-					driver={driver1}
-					timing={timing1}
-					stats={stats1}
-					appTiming={app1}
-					isDriver1={true}
-					customColor={color1}
-					lapTime={lap1Time}
-					lapDelta={lapDelta !== null ? (lapDelta < 0 ? Math.abs(lapDelta) : null) : null}
-					isFasterOverall={lapDelta !== null ? lapDelta > 0 : false}
-					comparisons={comparisons}
-					sectorValues={s1Values}
-					sectorSegmentsList={s1Segments}
-					speedTrap={st1}
-					isFasterSpeed={st1 !== null && st2 !== null ? st1 > st2 : false}
-				/>
-				<CleanDriverCard
-					mode={mode}
-					driver={driver2}
-					timing={timing2}
-					stats={stats2}
-					appTiming={app2}
-					isDriver1={false}
-					customColor={color2}
-					lapTime={lap2Time}
-					lapDelta={lapDelta !== null ? (lapDelta > 0 ? lapDelta : null) : null}
-					isFasterOverall={lapDelta !== null ? lapDelta < 0 : false}
-					comparisons={comparisons}
-					sectorValues={s2Values}
-					sectorSegmentsList={s2Segments}
-					speedTrap={st2}
-					isFasterSpeed={st1 !== null && st2 !== null ? st2 > st1 : false}
-				/>
-			</div>
-		</motion.div>
+				{/* 2. Sección Piloto 1 (Limpio, sin cards anidadas) */}
+				<div className="flex flex-col gap-1.5 pt-0.5">
+					{/* Fila Encabezado Piloto 1 */}
+					<div className="flex items-center justify-between text-xs">
+						<div className="flex items-center gap-2 min-w-0">
+							<span
+								className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+								style={{ backgroundColor: color1 }}
+							/>
+							<span className="font-sans font-bold text-white text-[13px] tracking-tight truncate">
+								{driver1.FullName || driver1.BroadcastName}
+							</span>
+							<span className="text-[10px] font-mono text-white/40">
+								P{timing1.Position || "-"}
+							</span>
+						</div>
+
+						<div className="flex items-center gap-3 shrink-0">
+							{stint1?.Compound && (
+								<div className="flex items-center gap-1 text-[10.5px] font-mono text-white/60">
+									<TireIcon compound={stint1.Compound} size={13} />
+									<span>{stint1.TotalLaps ?? 0}L</span>
+								</div>
+							)}
+							{st1 && (
+								<span
+									className={clsx(
+										"text-[10.5px] font-mono tabular-nums",
+										st1 > (st2 || 0) ? "text-emerald-400 font-semibold" : "text-white/50"
+									)}
+								>
+									{st1} km/h
+								</span>
+							)}
+							<span
+								className={clsx(
+									"font-mono font-black text-sm tabular-nums",
+									lapDelta !== null && lapDelta > 0 ? "text-emerald-400" : "text-white"
+								)}
+							>
+								{lap1Time}
+							</span>
+						</div>
+					</div>
+
+					{/* Sectores S1, S2, S3 con Palitos de Microsectores de Piloto 1 */}
+					<div className="grid grid-cols-3 gap-2 sm:gap-3">
+						{[0, 1, 2].map((idx) => {
+							const val1 = s1Values[idx] || "--";
+							const comp = comparisons[idx];
+							const isD1OverallFastest =
+								mode === "best"
+									? Boolean(timing1.Sectors?.[idx]?.OverallFastest || stats1?.BestSectors?.[idx]?.Position === 1)
+									: Boolean(
+											(timing1.Sectors?.[idx]?.OverallFastest &&
+												(timing1.Sectors?.[idx]?.Value === val1 || timing1.Sectors?.[idx]?.PreviousValue === val1)) ||
+												(stats1?.BestSectors?.[idx]?.Position === 1 && stats1?.BestSectors?.[idx]?.Value === val1)
+									  );
+							const seg1 = s1Segments?.[idx] || [];
+
+							return (
+								<div key={`d1.s.${idx}`} className="flex flex-col gap-1">
+									<div className="flex items-center justify-between text-[11px] font-mono">
+										<span className="text-white/40 font-semibold text-[10px]">S{idx + 1}</span>
+										<span
+											className={clsx("font-bold tabular-nums text-xs", {
+												"text-purple-400": isD1OverallFastest,
+												"text-emerald-400": comp.winner === 1 && !isD1OverallFastest,
+												"text-white": comp.winner !== 1 && !isD1OverallFastest && val1 !== "--",
+												"text-white/30": val1 === "--",
+											})}
+										>
+											{val1}
+										</span>
+									</div>
+									<div className="flex items-center gap-[2px] w-full">
+										{seg1.length > 0 ? (
+											seg1.map((seg, sIdx) => (
+												<div
+													key={sIdx}
+													className={clsx(
+														"flex-1 h-[4.5px] min-w-[3px] rounded-full transition-all",
+														{
+															"bg-purple-500 shadow-[0_0_3px_rgba(168,85,247,0.6)]": seg.Status === 2051,
+															"bg-emerald-400 shadow-[0_0_3px_rgba(52,211,153,0.6)]": seg.Status === 2049,
+															"bg-amber-400": seg.Status === 2048 || seg.Status === 2052,
+															"bg-blue-500": seg.Status === 2064,
+															"bg-white/[0.10]": seg.Status === 0 || !seg.Status,
+														}
+													)}
+												/>
+											))
+										) : (
+											[0, 1, 2, 3].map((fIdx) => (
+												<div
+													key={fIdx}
+													className={clsx(
+														"flex-1 h-[4.5px] min-w-[3px] rounded-full",
+														isD1OverallFastest
+															? "bg-purple-500"
+															: comp.winner === 1
+															? "bg-emerald-400"
+															: val1 !== "--"
+															? "bg-amber-400"
+															: "bg-white/[0.10]"
+													)}
+												/>
+											))
+										)}
+									</div>
+								</div>
+							);
+						})}
+					</div>
+				</div>
+
+				{/* 3. Línea Divisoria con Deltas de Sector (Espaciado limpio) */}
+				<div className="relative my-0.5 flex items-center justify-between border-t border-white/[0.08] pt-1.5 text-[10px] font-mono">
+					<div className="grid grid-cols-3 gap-2 sm:gap-3 w-full text-center">
+						{[0, 1, 2].map((idx) => {
+							const comp = comparisons[idx];
+							if (comp.delta === null) return <div key={`delta.${idx}`} />;
+							const isD1Faster = comp.winner === 1;
+							const isD2Faster = comp.winner === 2;
+
+							return (
+								<div key={`delta.${idx}`} className="flex items-center justify-center gap-1">
+									<span
+										className={clsx("font-bold tabular-nums text-[9.5px]", {
+											"text-emerald-400": isD1Faster,
+											"text-rose-400": isD2Faster,
+											"text-white/30": !isD1Faster && !isD2Faster,
+										})}
+									>
+										{isD1Faster ? `▲ -${comp.delta.toFixed(3)}s` : `▼ +${Math.abs(comp.delta).toFixed(3)}s`}
+									</span>
+								</div>
+							);
+						})}
+					</div>
+				</div>
+
+				{/* 4. Sección Piloto 2 (Limpio, sin cards anidadas) */}
+				<div className="flex flex-col gap-1.5 pb-0.5">
+					{/* Fila Encabezado Piloto 2 */}
+					<div className="flex items-center justify-between text-xs">
+						<div className="flex items-center gap-2 min-w-0">
+							<span
+								className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+								style={{ backgroundColor: color2 }}
+							/>
+							<span className="font-sans font-bold text-white text-[13px] tracking-tight truncate">
+								{driver2.FullName || driver2.BroadcastName}
+							</span>
+							<span className="text-[10px] font-mono text-white/40">
+								P{timing2.Position || "-"}
+							</span>
+						</div>
+
+						<div className="flex items-center gap-3 shrink-0">
+							{stint2?.Compound && (
+								<div className="flex items-center gap-1 text-[10.5px] font-mono text-white/60">
+									<TireIcon compound={stint2.Compound} size={13} />
+									<span>{stint2.TotalLaps ?? 0}L</span>
+								</div>
+							)}
+							{st2 && (
+								<span
+									className={clsx(
+										"text-[10.5px] font-mono tabular-nums",
+										st2 > (st1 || 0) ? "text-emerald-400 font-semibold" : "text-white/50"
+									)}
+								>
+									{st2} km/h
+								</span>
+							)}
+							<div className="flex items-center gap-1.5">
+								{lapDelta !== null && (
+									<span
+										className={clsx(
+											"text-[10px] font-mono font-bold tabular-nums",
+											lapDelta > 0 ? "text-rose-400" : "text-emerald-400"
+										)}
+									>
+										{lapDelta > 0 ? `+${lapDelta.toFixed(3)}s` : `-${Math.abs(lapDelta).toFixed(3)}s`}
+									</span>
+								)}
+								<span
+									className={clsx(
+										"font-mono font-black text-sm tabular-nums",
+										lapDelta !== null && lapDelta < 0 ? "text-emerald-400" : "text-white"
+									)}
+								>
+									{lap2Time}
+								</span>
+							</div>
+						</div>
+					</div>
+
+					{/* Sectores S1, S2, S3 con Palitos de Microsectores de Piloto 2 */}
+					<div className="grid grid-cols-3 gap-2 sm:gap-3">
+						{[0, 1, 2].map((idx) => {
+							const val2 = s2Values[idx] || "--";
+							const comp = comparisons[idx];
+							const isD2OverallFastest =
+								mode === "best"
+									? Boolean(timing2.Sectors?.[idx]?.OverallFastest || stats2?.BestSectors?.[idx]?.Position === 1)
+									: Boolean(
+											(timing2.Sectors?.[idx]?.OverallFastest &&
+												(timing2.Sectors?.[idx]?.Value === val2 || timing2.Sectors?.[idx]?.PreviousValue === val2)) ||
+												(stats2?.BestSectors?.[idx]?.Position === 1 && stats2?.BestSectors?.[idx]?.Value === val2)
+									  );
+							const seg2 = s2Segments?.[idx] || [];
+
+							return (
+								<div key={`d2.s.${idx}`} className="flex flex-col gap-1">
+									<div className="flex items-center justify-between text-[11px] font-mono">
+										<span className="text-white/40 font-semibold text-[10px]">S{idx + 1}</span>
+										<span
+											className={clsx("font-bold tabular-nums text-xs", {
+												"text-purple-400": isD2OverallFastest,
+												"text-emerald-400": comp.winner === 2 && !isD2OverallFastest,
+												"text-white": comp.winner !== 2 && !isD2OverallFastest && val2 !== "--",
+												"text-white/30": val2 === "--",
+											})}
+										>
+											{val2}
+										</span>
+									</div>
+									<div className="flex items-center gap-[2px] w-full">
+										{seg2.length > 0 ? (
+											seg2.map((seg, sIdx) => (
+												<div
+													key={sIdx}
+													className={clsx(
+														"flex-1 h-[4.5px] min-w-[3px] rounded-full transition-all",
+														{
+															"bg-purple-500 shadow-[0_0_3px_rgba(168,85,247,0.6)]": seg.Status === 2051,
+															"bg-emerald-400 shadow-[0_0_3px_rgba(52,211,153,0.6)]": seg.Status === 2049,
+															"bg-amber-400": seg.Status === 2048 || seg.Status === 2052,
+															"bg-blue-500": seg.Status === 2064,
+															"bg-white/[0.10]": seg.Status === 0 || !seg.Status,
+														}
+													)}
+												/>
+											))
+										) : (
+											[0, 1, 2, 3].map((fIdx) => (
+												<div
+													key={fIdx}
+													className={clsx(
+														"flex-1 h-[4.5px] min-w-[3px] rounded-full",
+														isD2OverallFastest
+															? "bg-purple-500"
+															: comp.winner === 2
+															? "bg-emerald-400"
+															: val2 !== "--"
+															? "bg-amber-400"
+															: "bg-white/[0.10]"
+													)}
+												/>
+											))
+										)}
+									</div>
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			</motion.div>
+		</div>
 	);
 }
 
-// Clean Card aligned with exact user specifications
-type CardProps = {
-	mode: "last" | "best";
-	driver: Driver;
-	timing: TimingDataDriver;
-	stats?: TimingStatsDriver;
-	appTiming?: { Stints?: Stint[]; GridPos?: string };
-	isDriver1: boolean;
-	customColor?: string;
-	lapTime: string;
-	lapDelta: number | null;
-	isFasterOverall: boolean;
-	comparisons: ReturnType<typeof compareSectors>[];
-	sectorValues: (string | undefined)[];
-	sectorSegmentsList: { Status: number }[][];
-	speedTrap: number | null;
-	isFasterSpeed: boolean;
-};
-
-function CleanDriverCard({
-	mode,
-	driver,
-	timing,
-	stats,
-	appTiming,
-	isDriver1,
-	customColor,
-	lapTime,
-	lapDelta,
-	isFasterOverall,
-	comparisons,
-	sectorValues,
-	sectorSegmentsList,
-	speedTrap,
-	isFasterSpeed,
-}: CardProps) {
-	const teamColor = customColor || getCustomTeamColor(driver.TeamColour, driver.Tla);
-	const currentStint = appTiming?.Stints ? appTiming.Stints[appTiming.Stints.length - 1] : null;
-	const lapCount = timing.NumberOfLaps || timing.Line || 0;
+// Minisectores en forma de palitos verticales compactos (estilo telemetría F1 / captura de usuario)
+function VerticalMiniSectorSticks({
+	sectors,
+	mode = "last",
+	bestLapSegments,
+	driverNumber,
+}: {
+	sectors?: TimingDataDriver["Sectors"];
+	mode?: "last" | "best";
+	bestLapSegments?: { [driver: string]: { Status: number }[][] };
+	driverNumber?: string;
+}) {
+	const sectorList = [0, 1, 2].map((idx) => {
+		if (mode === "best" && driverNumber && bestLapSegments?.[driverNumber]?.[idx]?.length) {
+			return bestLapSegments[driverNumber][idx];
+		}
+		return sectors?.[idx]?.Segments || [];
+	});
 
 	return (
 		<div
-			className="relative flex flex-col rounded-xl bg-[#111827]/95 backdrop-blur-md overflow-hidden p-2.5 sm:p-3 select-none justify-between gap-1.5 shadow-xl"
-			style={{
-				border: `1.5px solid ${teamColor}`,
-			}}
+			className="flex items-center gap-1.5 shrink-0"
+			title="Microsectores de la vuelta (S1 • S2 • S3)"
 		>
-			{/* 1. HEADER: Driver Info (Left) + Lap Time & Delta (Right) */}
-			<div className="flex items-center justify-between gap-1.5 pb-1.5 border-b border-gray-800/60">
-				{/* Driver Identity */}
-				<div className="min-w-0">
-					<div className="flex items-center gap-1.5">
-						<div
-							className="w-2 h-2 rounded-full shrink-0"
-							style={{ backgroundColor: teamColor }}
-						/>
-						<h4 translate="no" className="font-extrabold text-[12.5px] sm:text-[13.5px] text-white tracking-wide uppercase truncate font-sans notranslate">
-							{driver.FullName || driver.BroadcastName}
-						</h4>
-					</div>
-					<div className="flex items-center gap-1.5 mt-0.5 text-[9.5px] sm:text-[10px] font-mono text-gray-400 pl-3.5">
-						<span>L{lapCount}</span>
-						<span>•</span>
-						<span>P{timing.Position || "-"}</span>
-					</div>
-				</div>
+			{[0, 1, 2].map((sectorIdx) => {
+				const segments = sectorList[sectorIdx];
+				const fallback = sectors?.[sectorIdx];
+				const isPurple = fallback?.OverallFastest;
+				const isGreen = fallback?.PersonalFastest;
 
-				{/* Lap Time & Delta */}
-				<div className="text-right shrink-0">
-					<span
-						className={clsx(
-							"font-mono font-black text-sm sm:text-base tabular-nums tracking-tight",
-							isFasterOverall ? "text-emerald-400" : "text-white"
-						)}
-					>
-						{lapTime}
-					</span>
-					{lapDelta !== null && (
-						<span className="text-[9px] sm:text-[9.5px] font-mono font-bold text-red-400 block -mt-0.5">
-							+{lapDelta.toFixed(3)}s
-						</span>
-					)}
-				</div>
-			</div>
-
-			{/* 2. SECTORS & MINISECTORS: S and Time Centered Directly Above Corresponding Sector Segments */}
-			<div className="grid grid-cols-3 gap-1.5 py-0.5">
-				{[0, 1, 2].map((idx) => {
-					const sectorLabel = `S${idx + 1}`;
-					const sectorVal = sectorValues[idx] || "--";
-					const comp = comparisons[idx];
-					const isWinner = (isDriver1 && comp.winner === 1) || (!isDriver1 && comp.winner === 2);
-
-					// In mode "last", only show purple if THIS specific last-lap sector value was overall fastest.
-					// Do not let a past session PB purple taint the last lap comparison.
-					const isOverallFastest = mode === "best"
-						? Boolean(timing.Sectors?.[idx]?.OverallFastest || stats?.BestSectors?.[idx]?.Position === 1)
-						: Boolean(
-							(timing.Sectors?.[idx]?.OverallFastest && (timing.Sectors?.[idx]?.Value === sectorVal || timing.Sectors?.[idx]?.PreviousValue === sectorVal)) ||
-							(stats?.BestSectors?.[idx]?.Position === 1 && stats?.BestSectors?.[idx]?.Value === sectorVal)
-						);
-
-					const sectorSegments = sectorSegmentsList?.[idx] || timing.Sectors?.[idx]?.Segments || [];
-
-					return (
-						<div key={sectorLabel} className="flex flex-col items-center gap-0.5">
-							{/* Centered Sector Label & Time (Clean typography, no card background) */}
-							<div className="flex items-center justify-center gap-1 text-[11px] font-mono py-0.5">
-								<span className="text-gray-400 font-semibold text-[10px]">{sectorLabel}</span>
-								<span
-									className={clsx("font-bold tabular-nums text-[11px] sm:text-xs", {
-										"text-violet-400": isOverallFastest,
-										"text-emerald-400": isWinner && !isOverallFastest,
-										"text-white": !isWinner && !isOverallFastest && sectorVal !== "--",
-										"text-gray-500": sectorVal === "--",
-									})}
-								>
-									{sectorVal}
-								</span>
-							</div>
-
-							{/* Minisector segments for THIS sector directly underneath (Dashboard style) */}
-							<div className="flex items-center gap-[1px] w-full justify-center">
-								{sectorSegments.length > 0 ? (
-									sectorSegments.map((seg, segIdx) => (
-										<div
-											key={`seg.${idx}.${segIdx}`}
-											className={clsx(
-												"flex-1 h-[3px] min-w-[2px] rounded-full transition-colors duration-150",
-												{
-													"bg-amber-400": seg.Status === 2048 || seg.Status === 2052,
-													"bg-emerald-500": seg.Status === 2049,
-													"bg-violet-600": seg.Status === 2051,
-													"bg-blue-500": seg.Status === 2064,
-													"bg-zinc-800": seg.Status === 0 || !seg.Status,
-												}
-											)}
-										/>
-									))
-								) : (
+				return (
+					<div key={`sector.sticks.${sectorIdx}`} className="flex items-center gap-[1.5px]">
+						{segments.length > 0 ? (
+							segments.map((seg, sIdx) => {
+								const st = seg.Status;
+								return (
 									<div
-										className={clsx("w-full h-[3px] rounded-full", {
-											"bg-violet-600": isOverallFastest,
-											"bg-emerald-500": isWinner,
-											"bg-amber-400": !isWinner && !isOverallFastest && sectorVal !== "--",
-											"bg-zinc-800": sectorVal === "--",
-										})}
+										key={sIdx}
+										className={clsx(
+											"w-[2px] h-3.5 rounded-full transition-all",
+											{
+												"bg-purple-500 shadow-[0_0_3px_rgba(168,85,247,0.7)]": st === 2051,
+												"bg-emerald-400 shadow-[0_0_3px_rgba(52,211,153,0.7)]": st === 2049,
+												"bg-amber-400": st === 2048 || st === 2052,
+												"bg-blue-500": st === 2064,
+												"bg-white/[0.12]": st === 0 || !st,
+											}
+										)}
 									/>
-								)}
-							</div>
-						</div>
-					);
-				})}
-			</div>
-
-			{/* 3. FOOTER: Tire Stint & Speed Trap */}
-			<div className="flex items-center justify-between pt-1.5 border-t border-gray-800/60 text-[9px] sm:text-[9.5px] font-mono text-gray-400">
-				{/* Tire compound & stint age */}
-				<div className="flex items-center gap-1">
-					{currentStint?.Compound ? (
-						<div className="flex items-center gap-1">
-							<TireIcon compound={currentStint.Compound} size={11} />
-							<span className="text-gray-200 font-semibold uppercase">
-								{currentStint.Compound} <span className="text-gray-400">({currentStint.TotalLaps ?? 0}L)</span>
-							</span>
-						</div>
-					) : (
-						<span className="text-gray-500">Neumático N/D</span>
-					)}
-				</div>
-
-				{/* Speed Trap */}
-				{speedTrap ? (
-					<div className="flex items-center gap-1">
-						<Gauge className="w-3 h-3 text-gray-500" />
-						<span className="text-gray-400">ST:</span>
-						<span className={clsx("font-bold", isFasterSpeed ? "text-emerald-400" : "text-white")}>
-							{speedTrap} km/h
-						</span>
+								);
+							})
+						) : (
+							/* Fallback: 4 palitos reflejando el estado del sector completo */
+							[0, 1, 2, 3].map((fIdx) => (
+								<div
+									key={fIdx}
+									className={clsx(
+										"w-[2px] h-3.5 rounded-full transition-all",
+										isPurple
+											? "bg-purple-500 shadow-[0_0_3px_rgba(168,85,247,0.7)]"
+											: isGreen
+											? "bg-emerald-400 shadow-[0_0_3px_rgba(52,211,153,0.7)]"
+											: fallback?.Value
+											? "bg-amber-400"
+											: "bg-white/[0.12]"
+									)}
+								/>
+							))
+						)}
 					</div>
-				) : (
-					<span className="text-gray-500">-- km/h</span>
-				)}
-			</div>
+				);
+			})}
 		</div>
 	);
 }
